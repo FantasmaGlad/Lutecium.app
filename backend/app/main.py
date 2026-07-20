@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-from app.api import analyze, auth, downloads, files, health
+from app.api import admin, analyze, auth, downloads, files, health
 from app.core.cleanup import cleanup_loop
 from app.core.db import async_session_maker
 from app.core.events import bus
@@ -36,6 +36,7 @@ def create_app() -> FastAPI:
     app.include_router(downloads.router, prefix="/api")
     app.include_router(files.router, prefix="/api")
     app.include_router(auth.router, prefix="/api")
+    app.include_router(admin.router, prefix="/api")
     return app
 
 
