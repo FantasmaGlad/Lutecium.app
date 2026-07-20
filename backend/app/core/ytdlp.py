@@ -46,6 +46,66 @@ def extract_info(url: str) -> dict:
     return info
 
 
+def _base_opts(
+    job_dir: Path,
+    on_progress: Callable[[dict[str, Any]], None],
+    on_postprocessor: Callable[[dict[str, Any]], None],
+) -> dict:
+    return {
+        "outtmpl": str(job_dir / "%(title).200B.%(ext)s"),
+        "noplaylist": True,
+        "quiet": True,
+        "no_warnings": True,
+        "progress_hooks": [on_progress],
+        "postprocessor_hooks": [on_postprocessor],
+    }
+
+
+def _video_opts(options: dict, base: dict) -> dict:
+    """Mode `video` (F-12) : fusion audio+vidéo automatique (F-14) via yt-dlp/ffmpeg."""
+    format_id = options.get("format_id")
+    format_selector = f"{format_id}+bestaudio/best" if format_id else "bestvideo+bestaudio/best"
+    return {
+        **base,
+        "format": format_selector,
+        "merge_output_format": "mp4",
+    }
+
+
+def _audio_opts(options: dict, base: dict) -> dict:
+    """Mode `audio` (F-12) : extraction via le postprocesseur FFmpegExtractAudio."""
+    audio_format = options.get("audio_format") or "mp3"
+    return {
+        **base,
+        "format": "bestaudio/best",
+        "postprocessors": [
+            {
+                "key": "FFmpegExtractAudio",
+                "preferredcodec": audio_format,
+                "preferredquality": "0",
+            }
+        ],
+    }
+
+
+def _subtitles_opts(options: dict, base: dict) -> dict:
+    """Mode `subtitles` (F-12) : sous-titres seuls, aucun média téléchargé."""
+    langs = options.get("subtitle_langs") or ["en"]
+    return {
+        **base,
+        "skip_download": True,
+        "writesubtitles": True,
+        "subtitleslangs": langs,
+    }
+
+
+_MODE_BUILDERS = {
+    "video": _video_opts,
+    "audio": _audio_opts,
+    "subtitles": _subtitles_opts,
+}
+
+
 def run_download(
     url: str,
     options: dict,
@@ -53,24 +113,12 @@ def run_download(
     on_progress: Callable[[dict[str, Any]], None],
     on_postprocessor: Callable[[dict[str, Any]], None],
 ) -> tuple[Path, int]:
-    """Télécharge une vidéo (mode `video`, F-12) avec fusion audio+vidéo automatique (F-14).
-
-    yt-dlp fusionne automatiquement via ffmpeg quand les flux vidéo/audio sont séparés
-    (aucune commande shell : tout passe par l'API Python, S-05).
-    """
-    format_id = options.get("format_id")
-    format_selector = f"{format_id}+bestaudio/best" if format_id else "bestvideo+bestaudio/best"
-
-    ydl_opts = {
-        "outtmpl": str(job_dir / "%(title).200B.%(ext)s"),
-        "format": format_selector,
-        "merge_output_format": "mp4",
-        "noplaylist": True,
-        "quiet": True,
-        "no_warnings": True,
-        "progress_hooks": [on_progress],
-        "postprocessor_hooks": [on_postprocessor],
-    }
+    """Télécharge selon le mode choisi (video/audio/subtitles, F-12) via l'API Python de
+    yt-dlp — jamais de commande shell (S-05)."""
+    mode = options.get("mode", "video")
+    build_opts = _MODE_BUILDERS.get(mode, _video_opts)
+    base = _base_opts(job_dir, on_progress, on_postprocessor)
+    ydl_opts = build_opts(options, base)
 
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:

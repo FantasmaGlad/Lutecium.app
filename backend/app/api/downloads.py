@@ -1,3 +1,5 @@
+from typing import Literal
+
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel, HttpUrl
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -11,7 +13,7 @@ router = APIRouter()
 
 class CreateDownloadRequest(BaseModel):
     url: HttpUrl
-    mode: str = "video"
+    mode: Literal["video", "audio", "subtitles"] = "video"
     format_id: str | None = None
     audio_format: str | None = None
     subtitle_langs: list[str] | None = None
