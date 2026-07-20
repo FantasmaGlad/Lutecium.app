@@ -10,6 +10,9 @@ venv/
 node_modules/
 frontend/dist/
 
+# Build du site déployé sur le serveur (copie manuelle de frontend/dist, pas de pipeline encore — Phase 5)
+deploy/site/
+
 # Secrets et config locale
 .env
 *.env.local

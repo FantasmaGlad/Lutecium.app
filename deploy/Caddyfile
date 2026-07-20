@@ -3,7 +3,7 @@
 }
 
 {$LUTECIUM_DOMAIN} {
-	root * /srv/test
+	root * /srv/site
 	file_server
 	encode gzip
 

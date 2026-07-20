@@ -7,7 +7,7 @@ services:
       - "443:443"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      - ./test-page:/srv/test:ro
+      - ./site:/srv/site:ro
       - caddy_data:/data
       - caddy_config:/config
     env_file: .env
