@@ -10,6 +10,7 @@ from app.config import settings
 from app.core import cancellation
 from app.core.db import async_session_maker
 from app.core.events import bus
+from app.core.quota import record_usage
 from app.core.signing import generate_file_token
 from app.core.throughput import record_job_duration
 from app.core.ytdlp import DownloadCancelledError, DownloadFailedError, run_download
@@ -56,7 +57,7 @@ async def _process_job(job_id: int) -> None:
         if download is None or download.status != DownloadStatus.QUEUED:
             return
         download.status = DownloadStatus.DOWNLOADING
-        url, options = download.url, download.options or {}
+        url, options, user_id = download.url, download.options or {}, download.user_id
         await session.commit()
 
     bus.publish(job_id, {"event": "downloading", "data": {}})
@@ -111,6 +112,8 @@ async def _process_job(job_id: int) -> None:
         download.filename = final_path.name
         download.size_bytes = size_bytes
         await session.commit()
+        if user_id is not None:
+            await record_usage(session, user_id, size_bytes)  # §6, quota journalier
 
     file_url = f"/api/files/{generate_file_token(job_id)}"
     bus.publish(

@@ -8,6 +8,7 @@ from app.core.auth import hash_password, verify_password
 from app.core.bruteforce import is_locked, record_failure
 from app.core.bruteforce import reset as reset_bruteforce
 from app.core.db import get_session
+from app.core.quota import get_today_usage_bytes, quota_bytes_for
 from app.core.sessions import COOKIE_NAME, create_session, delete_session, get_session_by_token
 from app.models.user import User, UserStatus
 
@@ -34,6 +35,8 @@ class UserResponse(BaseModel):
     pseudo: str
     role: str
     must_change_password: bool
+    usage_today_bytes: int
+    daily_quota_bytes: float
 
 
 def _set_session_cookie(response: Response, token: str) -> None:
@@ -47,8 +50,15 @@ def _set_session_cookie(response: Response, token: str) -> None:
     )
 
 
-def _to_response(user: User) -> UserResponse:
-    return UserResponse(id=user.id, pseudo=user.pseudo, role=user.role, must_change_password=user.must_change_password)
+async def _to_response(db: AsyncSession, user: User) -> UserResponse:
+    return UserResponse(
+        id=user.id,
+        pseudo=user.pseudo,
+        role=user.role,
+        must_change_password=user.must_change_password,
+        usage_today_bytes=await get_today_usage_bytes(db, user.id),
+        daily_quota_bytes=quota_bytes_for(user),
+    )
 
 
 async def get_current_user(request: Request, db: AsyncSession = Depends(get_session)) -> User | None:
@@ -82,7 +92,7 @@ async def register(
 
     session = await create_session(db, user.id, None)
     _set_session_cookie(response, session.token)
-    return _to_response(user)
+    return await _to_response(db, user)
 
 
 @router.post("/auth/login", response_model=UserResponse)
@@ -104,7 +114,7 @@ async def login(
     reset_bruteforce(payload.pseudo, client_ip)
     session = await create_session(db, user.id, request.headers.get("user-agent"))
     _set_session_cookie(response, session.token)
-    return _to_response(user)
+    return await _to_response(db, user)
 
 
 @router.post("/auth/logout")
@@ -117,8 +127,8 @@ async def logout(request: Request, response: Response, db: AsyncSession = Depend
 
 
 @router.get("/auth/me", response_model=UserResponse)
-async def me(user: User = Depends(require_user)) -> UserResponse:
-    return _to_response(user)
+async def me(user: User = Depends(require_user), db: AsyncSession = Depends(get_session)) -> UserResponse:
+    return await _to_response(db, user)
 
 
 @router.post("/auth/change-password")

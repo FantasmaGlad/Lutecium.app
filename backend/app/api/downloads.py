@@ -16,6 +16,7 @@ from app.core.events import bus
 from app.core.filenames import sanitize_filename
 from app.core.guest import GUEST_COOKIE_NAME, guest_download_count, new_guest_cookie, record_guest_download
 from app.core.queue import enqueue, queue_position
+from app.core.quota import has_quota_remaining
 from app.core.signing import generate_file_token
 from app.core.throughput import estimate_wait_seconds
 from app.core.worker import enqueue_job
@@ -75,6 +76,16 @@ async def create_download(
                     "message": "Tu as atteint la limite invité. Crée un compte pour continuer à télécharger.",
                 },
             )
+    elif not await has_quota_remaining(session, user):
+        # Quota-cadeau (CDC UI §6.4) : refusé seulement si le quota était déjà atteint
+        # AVANT cette demande — la précédente a été offerte même si elle l'a dépassé.
+        raise HTTPException(
+            status_code=403,
+            detail={
+                "code": "quota_reached",
+                "message": "Quota journalier atteint. Réinitialisation à minuit.",
+            },
+        )
 
     active_count = await session.scalar(
         select(func.count()).select_from(Download).where(Download.status.in_(_ACTIVE_STATUSES))
