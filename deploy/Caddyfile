@@ -3,8 +3,13 @@
 }
 
 {$LUTECIUM_DOMAIN} {
-	root * /srv/site
-	file_server
+	handle /api/* {
+		reverse_proxy lutecium-api:8000
+	}
+	handle {
+		root * /srv/site
+		file_server
+	}
 	encode gzip
 
 	header {

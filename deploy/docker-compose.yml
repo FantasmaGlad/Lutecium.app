@@ -11,6 +11,18 @@ services:
       - caddy_data:/data
       - caddy_config:/config
     env_file: .env
+    depends_on:
+      - lutecium-api
+    networks:
+      - lutecium
+
+  lutecium-api:
+    build:
+      context: ../backend
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - lutecium_data:/app/data
     networks:
       - lutecium
 
@@ -33,3 +45,4 @@ networks:
 volumes:
   caddy_data:
   caddy_config:
+  lutecium_data:
