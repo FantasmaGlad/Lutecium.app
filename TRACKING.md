@@ -92,7 +92,7 @@ Spécification : [CDC UI/UX](docs/ui-ux-cahier-des-charges.md). Mobile-first, de
 | P3-11 | Quota-cadeau : jauge qui dépasse + animation + messages dédiés | UI §6.4 | ⬜ | | Dépend de P2-06 |
 | P3-12 | PWA : manifest, icône, share target Android (URL pré-collée + analyse lancée) | UI §8 | ⬜ | | Faisabilité à valider, pas de mode hors-ligne |
 | P3-13 | Accessibilité : AA, clavier complet, aria-live, prefers-reduced-motion | UI §11 | ⬜ | | |
-| P3-14 | Build production servi par Caddy | §3.3 | ⬜ | | |
+| P3-14 | Build production servi par Caddy | §3.3 | 🧪 | S1 (2026-07-20) | Déploiement manuel fait : `frontend/dist` copié sur le Wyse (`~/lutecium/deploy/site`), Caddyfile mis à jour (`/srv/site`), vérifié en ligne sur `https://lutecium.app`. Process manuel (scp), pas encore automatisé (Phase 5) ; `/api/*` → lutecium-api pas encore configuré (backend pas déployé) |
 
 ## Phase 4 — Salle de contrôle (admin)
 
@@ -147,7 +147,7 @@ Spécification : [CDC UI/UX](docs/ui-ux-cahier-des-charges.md). Mobile-first, de
 
 | 2026-07-20 | Détour UI/UX | Interruption volontaire de l'ordre des phases (Phase 1 backend en cours) pour amorcer la Phase 3/D à la demande de l'utilisateur (« voir le site prendre forme »). Choix de wordmark et palette faits directement dans le code (option 1 du CDC UI §2.1, palette §2.2 telle quelle) plutôt que via une session Claude Design formelle — statut 🧪 (à revalider en Phase D). Reprise du backend (P1-02) ensuite | Demande utilisateur |
 
-**En attente :** rien de bloquant actuellement. Plan validé implicitement par l'utilisateur le 2026-07-20 (« ça marche ! On continue. ») ; Phase 1 démarrée, détour Phase 3/D en cours.
+**En attente :** rien de bloquant actuellement. Plan validé implicitement par l'utilisateur le 2026-07-20 (« ça marche ! On continue. ») ; Phase 1 démarrée, détour Phase 3/D terminé (squelette déployé), reprise du backend.
 
 ## Journal des sessions
 
@@ -161,3 +161,4 @@ Spécification : [CDC UI/UX](docs/ui-ux-cahier-des-charges.md). Mobile-first, de
 | 2026-07-20 | S1 (suite 5) | Utilisateur achète `lutecium.app` sur Vercel. Config DNS : enregistrement `ALIAS` à l'apex → `lutecium.duckdns.org` (après un tour d'essais : CNAME sous-domaine refusé car mauvais Name, puis CNAME à l'apex refusé par Vercel qui impose ALIAS pour ce cas). `LUTECIUM_DOMAIN` mis à jour sur le Wyse (`lutecium.app, lutecium.duckdns.org`), Caddy recréé : certificat Let's Encrypt obtenu pour `lutecium.app`. Les deux domaines répondent 200 en HTTPS. |
 | 2026-07-20 | S1 (suite 6) | Démarrage Phase 1 (validation implicite du plan par l'utilisateur, « on continue »). T-01 complété : arborescence backend/ (app/api,core,models,services + tests), .env.example racine. P1-01 fait : squelette FastAPI (app factory, config.py pydantic-settings avec les variables §6), route /api/health, testé par pytest et requête manuelle. venv local avec Python 3.14 (3.12 indisponible sur la machine de dev ; Docker python:3.12-slim reste la cible officielle, P1-02 à venir). |
 | 2026-07-20 | S1 (suite 7) | Détour demandé par l'utilisateur : amorce Phase 3/D. `frontend/` scaffoldé (Vite + React + TS), tokens de design (2 thèmes, CDC UI §2.2/§2.3), Header (burger, wordmark animé, toggle thème, bouton compte), État A (champ URL + coller presse-papier + sites supportés). Tab title `lutecium▌`, favicon `lu>`. Vérifié dans le navigateur (thème clair/sombre, mobile 375px) et par `tsc --noEmit` + `npm run build` (OK). P3-01/02/03 marquées 🧪 (amorcées, non finalisées — à raffiner en Phase D). |
+| 2026-07-20 | S1 (suite 8) | Déploiement manuel du frontend sur le Wyse à la demande de l'utilisateur : Caddyfile + docker-compose.yml modifiés (`/srv/site` remplace `/srv/test`), `frontend/dist` copié via scp dans `~/lutecium/deploy/site`, ancienne page de test supprimée (repo + serveur), Caddy recréé. Vérifié : `https://lutecium.app` sert le vrai squelette (confirmé par navigateur). Incident réseau transitoire vers le Wyse pendant l'opération (2e occurrence de la session), résolu tout seul en ~15s. Reprise du backend : passage à P1-02. |
