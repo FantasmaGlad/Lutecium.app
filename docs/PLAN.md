@@ -21,7 +21,7 @@
 | # | Point | Analyse | Décision proposée |
 |---|---|---|---|
 | 1 | tmpfs pour `/data/downloads` (§3.2 « tmpfs ou volume ») | Cap global de 15 GB vs 16 GiB de RAM : intenable en tmpfs. | **Volume disque** avec cap logiciel 15 GB. Le TTL de 5 min limite l'usure du SSD. |
-| 2 | Quota « 20 GB / jour **glissant** » (§6) vs table `daily_usage` par date (§8) | Une fenêtre glissante de 24 h ne se calcule pas avec des compteurs journaliers. | Le quota se calcule sur la table `downloads` (somme des tailles des téléchargements terminés < 24 h + en cours). `daily_usage` est conservée comme agrégat pour les stats admin (A-11). |
+| 2 | Quota « jour glissant » (CDC technique §6) vs « réinitialisation à minuit » (CDC UI §6.4) | Les deux définitions étaient incompatibles. | **Tranché le 2026-07-20 : jour civil, remise à zéro à minuit** (heure du serveur, Europe/Paris). Calcul via `daily_usage` (par date), alimentée à chaque téléchargement terminé ; cohérent avec les textes du quota-cadeau. |
 | 3 | « Worker yt-dlp » séparé sur le schéma (§3.2) | Un conteneur worker + broker est surdimensionné pour 2 téléchargements simultanés. | **Workers asyncio dans le conteneur API** : yt-dlp exécuté dans des threads (`asyncio.to_thread`), ffmpeg en sous-processus (piloté par yt-dlp). La file est persistée en BDD (P-03 respecté). Extraction en conteneur séparé possible plus tard sans changer le modèle de données. |
 | 4 | Température CPU depuis un conteneur (A-12) | `/sys` n'est pas visible par défaut dans le conteneur. | Monter `/sys/class/thermal` et `/sys/class/hwmon` en lecture seule dans `lutecium-api` ; lecture via psutil. |
 | 5 | « État des conteneurs » sur le dashboard (A-12) | Nécessite l'accès au socket Docker = surface d'attaque. | v1 : heartbeat applicatif + métriques hôte. Si le besoin se confirme : `docker-socket-proxy` en lecture seule (jamais le socket brut). |
@@ -142,7 +142,7 @@ Structure du dépôt, git, `.gitignore` (venv, node_modules, `.env`, `*.db`, `da
 - **P2-03** : login/logout, sessions 30 j (cookie httpOnly, Secure — désactivable en dev http —, SameSite=Lax).
 - **P2-04** : verrouillage temporaire après 5 échecs de connexion (S-06), compteur par pseudo + IP.
 - **P2-05** : mode invité (F-06..F-08) : cookie signé + hash IP salé, 1 téléchargement, puis 401 avec code dédié que l'UI traduira en invitation à s'inscrire.
-- **P2-06** : quota 20 GB/24 h glissantes (calcul sur `downloads`, cf. §1.2-2), quota individuel nullable, admin exempté (A-02). **Quota-cadeau** (CDC UI §6.4) : la demande qui ferait franchir la limite est acceptée (réponse marquée `gift: true` pour l'animation), les suivantes refusées avec l'heure de réinitialisation. ⚠️ Arbitrage en cours : fenêtre glissante 24 h (CDC technique §6) vs réinitialisation à minuit (CDC UI §6.4). |
+- **P2-06** : quota journalier **par jour civil, remise à zéro à minuit** (tranché 2026-07-20, cf. §1.2-2 ; calcul via `daily_usage`), quota individuel nullable, admin exempté (A-02). **Quota-cadeau** (CDC UI §6.4) : la demande qui ferait franchir la limite est acceptée (réponse marquée `gift: true` pour l'animation), les suivantes refusées avec « Réinitialisation à minuit ».
 - **P2-07** : reset admin → mot de passe temporaire + flag « à changer » forçant le passage par `change-password` (F-05).
 - **P2-08** : table `settings` + service de config runtime (les valeurs BDD priment sur `.env`).
 - **P2-09** : validation du critère de phase.

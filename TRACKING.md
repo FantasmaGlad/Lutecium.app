@@ -56,7 +56,7 @@
 | P2-03 | Login/logout, sessions 30 j, cookies httpOnly/Secure/SameSite | F-04, S-04 | ⬜ | | |
 | P2-04 | Verrouillage brute-force (5 échecs) | S-06 | ⬜ | | |
 | P2-05 | Mode invité : cookie signé + hash IP, 1 téléchargement, purge quotidienne | F-06..08 | ⬜ | | |
-| P2-06 | Quota journalier + quota individuel + admin exempté + quota-cadeau (la demande qui franchit la limite est acceptée, les suivantes refusées) | §6, A-02, UI §6.4 | ⬜ | | Arbitrage en attente : 24 h glissantes vs minuit |
+| P2-06 | Quota journalier + quota individuel + admin exempté + quota-cadeau (la demande qui franchit la limite est acceptée, les suivantes refusées) | §6, A-02, UI §6.4 | ⬜ | | Tranché : jour civil, reset à minuit (2026-07-20) |
 | P2-07 | Reset mdp par l'admin → mdp temporaire + changement forcé | F-05 | ⬜ | | |
 | P2-08 | Table settings + config runtime (BDD prime sur .env) | §8, A-14 | ⬜ | | |
 | P2-09 | Critère de phase : parcours invité + quotas vérifiés | §12 | ⬜ | | |
@@ -142,7 +142,9 @@ Spécification : [CDC UI/UX](docs/ui-ux-cahier-des-charges.md). Mobile-first, de
 | 2026-07-20 | Accès Wyse | SSH par clé uniquement (`fanta@192.168.1.186`, hostname `debian-malefique`) ; **aucun mot de passe utilisé ni stocké** ; sudo NOPASSWD activé par l'utilisateur | S-02 |
 | 2026-07-20 | CDC UI/UX | v1.0 ajouté (docs/ui-ux-cahier-des-charges.md) : Phase D (design) créée, Phase 3 restructurée en 14 tâches, quota-cadeau intégré à P2-06, `GET /api/me/downloads` ajouté aux contrats | Utilisateur |
 
-**En attente :** validation du plan par l'utilisateur (débloque les phases 1–4) · arbitrage quota « 24 h glissantes » (CDC technique §6) vs « réinitialisation à minuit » (CDC UI §6.4) · token DuckDNS + port forwarding 80/443 sur la box (débloquent P0-03/P0-04).
+| 2026-07-20 | Quota journalier | **Jour civil, remise à zéro à minuit** (et non 24 h glissantes) ; calcul via `daily_usage` | Cadrage utilisateur |
+
+**En attente :** validation du plan par l'utilisateur (débloque les phases 1–4) · token DuckDNS + port forwarding 80/443 sur la box (débloquent P0-03/P0-04).
 
 ## Journal des sessions
 
