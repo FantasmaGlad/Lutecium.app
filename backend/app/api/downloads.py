@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.db import get_session
 from app.core.queue import enqueue, queue_position
+from app.core.worker import enqueue_job
 
 router = APIRouter()
 
@@ -31,4 +32,5 @@ async def create_download(
     options = payload.model_dump(exclude={"url"}, exclude_none=True)
     download = await enqueue(session, url=str(payload.url), options=options)
     position = await queue_position(session, download)
+    await enqueue_job(download.id)
     return DownloadResponse(id=download.id, status=download.status, position=position)
