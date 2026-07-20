@@ -1,20 +1,10 @@
 from httpx import ASGITransport, AsyncClient
 import pytest
-import pytest_asyncio
 
-from app.core.db import async_session_maker, init_db
+from app.core.db import async_session_maker
 from app.core.queue import enqueue, queue_position, reconcile_on_startup
 from app.main import create_app
-from app.models.download import Download, DownloadStatus
-
-
-@pytest_asyncio.fixture(autouse=True)
-async def _fresh_db():
-    await init_db()
-    yield
-    async with async_session_maker() as session:
-        await session.execute(Download.__table__.delete())
-        await session.commit()
+from app.models.download import DownloadStatus
 
 
 @pytest.mark.asyncio

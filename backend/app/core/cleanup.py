@@ -2,7 +2,7 @@ import asyncio
 import logging
 import shutil
 import time
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
 from sqlalchemy import select
@@ -10,6 +10,7 @@ from sqlalchemy import select
 from app.config import settings
 from app.core.db import async_session_maker
 from app.models.download import Download, DownloadStatus
+from app.models.guest_download import GuestDownload
 
 log = logging.getLogger(__name__)
 
@@ -22,9 +23,21 @@ async def cleanup_loop() -> None:
         try:
             await _expire_done_downloads()
             await _purge_orphan_directories()
+            await _purge_old_guest_downloads()
         except Exception:  # noqa: BLE001 — le nettoyage ne doit jamais interrompre le service
             log.exception("Erreur pendant le nettoyage périodique")
         await asyncio.sleep(_CHECK_INTERVAL_SECONDS)
+
+
+async def _purge_old_guest_downloads() -> None:
+    """§8 : `guest_downloads` est purgée quotidiennement (le sel de l'IP change chaque jour)."""
+    today = date.today()
+    async with async_session_maker() as session:
+        result = await session.execute(select(GuestDownload))
+        for record in result.scalars().all():
+            if record.created_at.date() != today:
+                await session.delete(record)
+        await session.commit()
 
 
 async def _expire_done_downloads() -> None:

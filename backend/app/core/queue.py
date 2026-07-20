@@ -4,8 +4,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.download import Download, DownloadStatus
 
 
-async def enqueue(session: AsyncSession, *, url: str, options: dict) -> Download:
-    download = Download(url=url, options=options, status=DownloadStatus.QUEUED)
+async def enqueue(session: AsyncSession, *, url: str, options: dict, user_id: int | None = None) -> Download:
+    download = Download(url=url, options=options, status=DownloadStatus.QUEUED, user_id=user_id)
     session.add(download)
     await session.commit()
     await session.refresh(download)

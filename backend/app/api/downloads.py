@@ -1,23 +1,26 @@
 import json
 from typing import Literal
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from pydantic import BaseModel, HttpUrl
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sse_starlette.sse import EventSourceResponse
 
+from app.api.auth import get_current_user
 from app.config import settings
 from app.core import cancellation
 from app.core.db import get_session
 from app.core.diskspace import current_downloads_usage_bytes
 from app.core.events import bus
 from app.core.filenames import sanitize_filename
+from app.core.guest import GUEST_COOKIE_NAME, guest_download_count, new_guest_cookie, record_guest_download
 from app.core.queue import enqueue, queue_position
 from app.core.signing import generate_file_token
 from app.core.throughput import estimate_wait_seconds
 from app.core.worker import enqueue_job
 from app.models.download import Download, DownloadStatus
+from app.models.user import User
 
 router = APIRouter()
 
@@ -44,8 +47,35 @@ class DownloadResponse(BaseModel):
 @router.post("/downloads", response_model=DownloadResponse)
 async def create_download(
     payload: CreateDownloadRequest,
+    request: Request,
+    response: Response,
     session: AsyncSession = Depends(get_session),
+    user: User | None = Depends(get_current_user),
 ) -> DownloadResponse:
+    client_ip = request.client.host if request.client else "inconnu"
+    guest_cookie = request.cookies.get(GUEST_COOKIE_NAME)
+
+    if user is None:
+        # Mode invité (F-06, F-07) : soft limit, jamais de mur d'authentification.
+        if not guest_cookie:
+            guest_cookie = new_guest_cookie()
+            response.set_cookie(
+                key=GUEST_COOKIE_NAME,
+                value=guest_cookie,
+                max_age=365 * 86400,
+                httponly=True,
+                secure=settings.secure_cookies,
+                samesite="lax",
+            )
+        if await guest_download_count(session, client_ip, guest_cookie) >= settings.guest_download_limit:
+            raise HTTPException(
+                status_code=403,
+                detail={
+                    "code": "guest_limit_reached",
+                    "message": "Tu as atteint la limite invité. Crée un compte pour continuer à télécharger.",
+                },
+            )
+
     active_count = await session.scalar(
         select(func.count()).select_from(Download).where(Download.status.in_(_ACTIVE_STATUSES))
     )
@@ -65,7 +95,9 @@ async def create_download(
         options["filename"] = sanitize_filename(options["filename"])
     options["max_file_size_gb"] = settings.max_file_size_gb
 
-    download = await enqueue(session, url=str(payload.url), options=options)
+    download = await enqueue(session, url=str(payload.url), options=options, user_id=user.id if user else None)
+    if user is None:
+        await record_guest_download(session, client_ip, guest_cookie)
     position = await queue_position(session, download)
     await enqueue_job(download.id)
     return DownloadResponse(

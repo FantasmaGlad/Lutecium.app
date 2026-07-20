@@ -2,24 +2,7 @@ from httpx import ASGITransport, AsyncClient
 import pytest
 import pytest_asyncio
 
-from app.core.db import init_db
 from app.main import create_app
-from app.models.download import Download
-
-
-@pytest_asyncio.fixture(autouse=True)
-async def _fresh_db():
-    await init_db()
-    yield
-    from app.core.db import async_session_maker
-    from app.models.user import User
-    from app.models.session import Session as SessionModel
-
-    async with async_session_maker() as session:
-        await session.execute(Download.__table__.delete())
-        await session.execute(SessionModel.__table__.delete())
-        await session.execute(User.__table__.delete())
-        await session.commit()
 
 
 @pytest_asyncio.fixture

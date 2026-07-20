@@ -2,21 +2,11 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import pytest
-import pytest_asyncio
 
 from app.config import settings
 from app.core.cleanup import _expire_done_downloads, _purge_orphan_directories
-from app.core.db import async_session_maker, init_db
+from app.core.db import async_session_maker
 from app.models.download import Download, DownloadStatus
-
-
-@pytest_asyncio.fixture(autouse=True)
-async def _fresh_db():
-    await init_db()
-    yield
-    async with async_session_maker() as session:
-        await session.execute(Download.__table__.delete())
-        await session.commit()
 
 
 @pytest.mark.asyncio
