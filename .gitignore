@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+
+# Node
+node_modules/
+frontend/dist/
+
+# Secrets et config locale
+.env
+*.env.local
+cookies.txt
+
+# Données
+*.db
+*.sqlite
+*.sqlite3
+data/
+backend/data/
+
+# Divers
+.DS_Store
