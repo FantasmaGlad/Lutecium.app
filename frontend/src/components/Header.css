@@ -1,0 +1,54 @@
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-surface);
+}
+
+.header__brand {
+  text-decoration: none;
+  display: inline-flex;
+}
+
+.header__burger {
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.header__burger span {
+  display: block;
+  width: 18px;
+  height: 1px;
+  background: var(--color-text);
+}
+
+.header__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.header__account {
+  background: transparent;
+  border: 1px solid var(--color-surface-alt);
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  padding: var(--space-1) var(--space-3);
+  cursor: pointer;
+}
+
+.header__account:hover {
+  border-color: var(--color-text-secondary);
+}

@@ -13,7 +13,7 @@
 | 1 | Cœur applicatif (backend) | 1/16 | YouTube + TikTok téléchargés de bout en bout |
 | 2 | Comptes et quotas | 0/9 | Invité : 1 téléchargement puis invitation ; quotas appliqués |
 | D | Design (Claude Design) | 0/5 | Livrables CDC UI §12 validés |
-| 3 | Frontend React | 0/14 | Parcours complet clavier/mobile en français |
+| 3 | Frontend React | 2/14 (amorcées, non finalisées) | Parcours complet clavier/mobile en français |
 | 4 | Salle de contrôle (admin) | 0/7 | Suspension + purge disque en ≤ 3 clics |
 | 0 | Socle serveur (Wyse) | 4/4 ✅ | HTTPS répond depuis l'extérieur |
 | 5 | Industrialisation | 0/8 | Réinstallation de zéro < 30 min |
@@ -79,9 +79,9 @@ Spécification : [CDC UI/UX](docs/ui-ux-cahier-des-charges.md). Mobile-first, de
 
 | ID | Tâche | Exigences | Statut | Session | Notes |
 |---|---|---|---|---|---|
-| P3-01 | Squelette Vite + React + TS, tokens design system, thèmes sombre/clair + toggle + prefers-color-scheme | UI §2 | ⬜ | | TypeScript validé (cadrage 2026-07-20) |
-| P3-02 | Layout global : header (burger, wordmark, toggle, compte) + drawer navigation | UI §3.1 | ⬜ | | |
-| P3-03 | États A/B : champ URL, bouton coller, analyse auto dès URL valide, erreurs inline | F-10, UI §4 | ⬜ | | |
+| P3-01 | Squelette Vite + React + TS, tokens design system, thèmes sombre/clair + toggle + prefers-color-scheme | UI §2 | 🧪 | S1 (2026-07-20) | Détour demandé par l'utilisateur avant la suite du backend (voir § Décisions). `frontend/` scaffoldé, `src/styles/tokens.css` (palette 2 thèmes CDC §2.2, typo §2.3), toggle thème fonctionnel (testé clair/sombre), tab title `lutecium▌` + favicon `lu>`. Wordmark et couleurs choisis directement (option 1 du CDC §2.1) sans passer par une session Claude Design formelle → à revalider/raffiner en Phase D. Pas de Framer Motion ni composants avancés à ce stade |
+| P3-02 | Layout global : header (burger, wordmark, toggle, compte) + drawer navigation | UI §3.1 | 🧪 | S1 (2026-07-20) | Header fait (burger inerte, wordmark, toggle thème, bouton compte statique). Drawer de navigation pas encore câblé |
+| P3-03 | États A/B : champ URL, bouton coller, analyse auto dès URL valide, erreurs inline | F-10, UI §4 | 🧪 | S1 (2026-07-20) | État A (repos) fait : champ URL, bouton coller-presse-papier fonctionnel, ligne sites supportés. Pas encore relié à /api/analyze (dépend de P1-03) ; état B (analyse) et erreurs inline pas encore faits |
 | P3-04 | État C : aperçu, Télécharger / Audio seul, options avancées, nom de fichier, poids estimé | F-11..13, UI §4 | ⬜ | | |
 | P3-05 | États D/E/F : progression SSE, annulation, célébration, compte à rebours TTL, erreurs actionnables | F-21..24, UI §4 | ⬜ | | |
 | P3-06 | Gestionnaire de téléchargements (barre repliée, badge, liste temps réel, actions par ligne) | UI §5.2 | ⬜ | | |
@@ -133,7 +133,7 @@ Spécification : [CDC UI/UX](docs/ui-ux-cahier-des-charges.md). Mobile-first, de
 | Date | Sujet | Décision | Origine |
 |---|---|---|---|
 | 2026-07-20 | Stockage downloads | Volume disque, pas tmpfs (15 GB vs 16 GiB RAM) | PLAN §1.2-1 |
-| 2026-07-20 | Quota glissant | Calculé sur `downloads` (24 h glissantes) ; `daily_usage` = stats | PLAN §1.2-2 |
+| 2026-07-20 | Quota glissant | ~~Calculé sur `downloads` (24 h glissantes)~~ **Superseded**, voir ligne « Quota journalier » ci-dessous | PLAN §1.2-2 |
 | 2026-07-20 | Architecture worker | Workers asyncio in-process, file persistée en BDD | PLAN §1.2-3 |
 | 2026-07-20 | Alembic | Introduit en Phase 2 (P1 = create_all sur `downloads`) | PLAN §1.3 |
 | 2026-07-20 | Git | Dépôt local, un commit par tâche terminée ; remote GitHub plus tard | Cadrage utilisateur |
@@ -145,7 +145,9 @@ Spécification : [CDC UI/UX](docs/ui-ux-cahier-des-charges.md). Mobile-first, de
 | 2026-07-20 | Quota journalier | **Jour civil, remise à zéro à minuit** (et non 24 h glissantes) ; calcul via `daily_usage` | Cadrage utilisateur |
 | 2026-07-20 | Domaine | Nom de domaine payant `lutecium.app` acheté sur Vercel, en remplacement de `lutecium.duckdns.org` comme domaine principal (backlog CDC §10.2, réalisé plus tôt que prévu). DNS géré par Vercel (nameservers `ns1/ns2.vercel-dns.com`), enregistrement `ALIAS` à l'apex (`@`) → `lutecium.duckdns.org` : Vercel gère la résolution DNS pure (pas de proxy HTTP), DuckDNS continue de suivre l'IP dynamique. Caddy sert désormais les deux domaines (`lutecium.app` en principal, `lutecium.duckdns.org` conservé en secours) | Utilisateur + doc Vercel |
 
-**En attente :** rien de bloquant actuellement. Plan validé implicitement par l'utilisateur le 2026-07-20 (« ça marche ! On continue. ») ; Phase 1 démarrée.
+| 2026-07-20 | Détour UI/UX | Interruption volontaire de l'ordre des phases (Phase 1 backend en cours) pour amorcer la Phase 3/D à la demande de l'utilisateur (« voir le site prendre forme »). Choix de wordmark et palette faits directement dans le code (option 1 du CDC UI §2.1, palette §2.2 telle quelle) plutôt que via une session Claude Design formelle — statut 🧪 (à revalider en Phase D). Reprise du backend (P1-02) ensuite | Demande utilisateur |
+
+**En attente :** rien de bloquant actuellement. Plan validé implicitement par l'utilisateur le 2026-07-20 (« ça marche ! On continue. ») ; Phase 1 démarrée, détour Phase 3/D en cours.
 
 ## Journal des sessions
 
@@ -158,3 +160,4 @@ Spécification : [CDC UI/UX](docs/ui-ux-cahier-des-charges.md). Mobile-first, de
 | 2026-07-20 | S1 (suite 4) | Utilisateur confirme le port forwarding 80/443 → 192.168.1.186 sur la Bbox. Redémarrage de Caddy : certificat Let's Encrypt obtenu avec succès (challenge tls-alpn-01 validé par les serveurs Let's Encrypt externes). `https://lutecium.duckdns.org` répond 200 avec certificat valide. **Phase 0 terminée (4/4, P0-01 à P0-04 ✅).** |
 | 2026-07-20 | S1 (suite 5) | Utilisateur achète `lutecium.app` sur Vercel. Config DNS : enregistrement `ALIAS` à l'apex → `lutecium.duckdns.org` (après un tour d'essais : CNAME sous-domaine refusé car mauvais Name, puis CNAME à l'apex refusé par Vercel qui impose ALIAS pour ce cas). `LUTECIUM_DOMAIN` mis à jour sur le Wyse (`lutecium.app, lutecium.duckdns.org`), Caddy recréé : certificat Let's Encrypt obtenu pour `lutecium.app`. Les deux domaines répondent 200 en HTTPS. |
 | 2026-07-20 | S1 (suite 6) | Démarrage Phase 1 (validation implicite du plan par l'utilisateur, « on continue »). T-01 complété : arborescence backend/ (app/api,core,models,services + tests), .env.example racine. P1-01 fait : squelette FastAPI (app factory, config.py pydantic-settings avec les variables §6), route /api/health, testé par pytest et requête manuelle. venv local avec Python 3.14 (3.12 indisponible sur la machine de dev ; Docker python:3.12-slim reste la cible officielle, P1-02 à venir). |
+| 2026-07-20 | S1 (suite 7) | Détour demandé par l'utilisateur : amorce Phase 3/D. `frontend/` scaffoldé (Vite + React + TS), tokens de design (2 thèmes, CDC UI §2.2/§2.3), Header (burger, wordmark animé, toggle thème, bouton compte), État A (champ URL + coller presse-papier + sites supportés). Tab title `lutecium▌`, favicon `lu>`. Vérifié dans le navigateur (thème clair/sombre, mobile 375px) et par `tsc --noEmit` + `npm run build` (OK). P3-01/02/03 marquées 🧪 (amorcées, non finalisées — à raffiner en Phase D). |

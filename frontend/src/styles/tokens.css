@@ -1,0 +1,57 @@
+/* Design tokens — CDC UI/UX §2.2 (palette), §2.3 (typographie), §2.4 (style) */
+
+:root {
+  /* Thème sombre (défaut) */
+  --color-bg: #1a1a1a;
+  --color-surface: #2a2a2a;
+  --color-surface-alt: #4a4a4a;
+  --color-text: #f2f2f2;
+  --color-text-secondary: #a1a1a1;
+  --color-accent: #ffffff;
+  --color-success: #7fb88f;
+  --color-error: #c97b7b;
+
+  --font-mono: ui-monospace, "JetBrains Mono", "Cascadia Code", "SFMono-Regular", Menlo, Consolas, monospace;
+  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --radius-sm: 3px;
+  --radius-md: 4px;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 16px;
+  --space-4: 24px;
+  --space-5: 40px;
+
+  --content-max-width: 640px;
+
+  color-scheme: dark;
+}
+
+:root[data-theme="light"] {
+  --color-bg: #ffffff;
+  --color-surface: #ededed;
+  --color-surface-alt: #d4d4d4;
+  --color-text: #2b2b2b;
+  --color-text-secondary: #b3b3b3;
+  --color-accent: #2b2b2b;
+  --color-success: #4f8a63;
+  --color-error: #a8453f;
+
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --color-bg: #ffffff;
+    --color-surface: #ededed;
+    --color-surface-alt: #d4d4d4;
+    --color-text: #2b2b2b;
+    --color-text-secondary: #b3b3b3;
+    --color-accent: #2b2b2b;
+    --color-success: #4f8a63;
+    --color-error: #a8453f;
+
+    color-scheme: light;
+  }
+}
