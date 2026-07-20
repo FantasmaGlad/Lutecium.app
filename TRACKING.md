@@ -15,7 +15,7 @@
 | D | Design (Claude Design) | 0/5 | Livrables CDC UI §12 validés |
 | 3 | Frontend React | 0/14 | Parcours complet clavier/mobile en français |
 | 4 | Salle de contrôle (admin) | 0/7 | Suspension + purge disque en ≤ 3 clics |
-| 0 | Socle serveur (Wyse) | 2/4 (P0-03 en cours) | HTTPS répond depuis l'extérieur |
+| 0 | Socle serveur (Wyse) | 4/4 ✅ | HTTPS répond depuis l'extérieur |
 | 5 | Industrialisation | 0/8 | Réinstallation de zéro < 30 min |
 
 ## Phase T — Setup transversal
@@ -112,8 +112,8 @@ Spécification : [CDC UI/UX](docs/ui-ux-cahier-des-charges.md). Mobile-first, de
 |---|---|---|---|---|---|
 | P0-01 | Script minimal : durcissement SSH, ufw, fail2ban, unattended-upgrades | S-01, S-02, S-08, S-10 | ✅ | S1 (2026-07-20) | deploy/provision/phase0.sh — vérifié : password auth off, root off, ufw (22=LAN, 80/443 publics), fail2ban + unattended actifs |
 | P0-02 | Docker + Compose + auto-cpufreq sur Debian 13 | P-01 | ✅ | S1 (2026-07-20) | Docker 29.6.2 + Compose v5.3.1 (dépôt officiel), fanta dans le groupe docker, auto-cpufreq actif |
-| P0-03 | Caddy + page de test + DuckDNS + HTTPS Let's Encrypt | S-03 | ⛔ | S1 (2026-07-20) | Conteneurs `caddy`+`duckdns` up et stables sur le Wyse. DuckDNS OK : `lutecium.duckdns.org` → `176.150.50.31` (IP publique réelle, confirmé par requête DNS externe). Let's Encrypt échoue : `Timeout during connect (likely firewall problem)` sur le challenge HTTP-01 → **port forwarding 80/443 non configuré sur la box Bouygues**. Caddy réessaiera automatiquement (rate-limité) une fois le forwarding en place, pas d'action supplémentaire nécessaire côté serveur |
-| P0-04 | Critère de phase : HTTPS répond depuis l'extérieur | §12 | ⬜ | | |
+| P0-03 | Caddy + page de test + DuckDNS + HTTPS Let's Encrypt | S-03 | ✅ | S1 (2026-07-20) | Port forwarding 80/443 confirmé par l'utilisateur sur la Bbox → redémarrage de Caddy → certificat Let's Encrypt obtenu (`certificate obtained successfully`, CN=lutecium.duckdns.org, issuer Let's Encrypt) |
+| P0-04 | Critère de phase : HTTPS répond depuis l'extérieur | §12 | ✅ | S1 (2026-07-20) | `https://lutecium.duckdns.org` → 200, certificat valide. Preuve d'accès externe la plus forte : le challenge ACME tls-alpn-01 a été validé par les serveurs Let's Encrypt eux-mêmes (IPs externes visibles dans les logs Caddy) via Internet, pas le LAN. Confirmation complémentaire recommandée : test depuis un téléphone en 4G/5G |
 
 ## Phase 5 — Industrialisation
 
@@ -144,7 +144,7 @@ Spécification : [CDC UI/UX](docs/ui-ux-cahier-des-charges.md). Mobile-first, de
 
 | 2026-07-20 | Quota journalier | **Jour civil, remise à zéro à minuit** (et non 24 h glissantes) ; calcul via `daily_usage` | Cadrage utilisateur |
 
-**En attente :** validation du plan par l'utilisateur (débloque les phases 1–4) · port forwarding 80/443 sur la box Bouygues vers `192.168.1.186` (seule action bloquante restante pour P0-03/P0-04 ; DNS et token DuckDNS sont opérationnels depuis le 2026-07-20).
+**En attente :** validation du plan par l'utilisateur (débloque les phases 1–4). Phase 0 entièrement terminée le 2026-07-20.
 
 ## Journal des sessions
 
@@ -154,3 +154,4 @@ Spécification : [CDC UI/UX](docs/ui-ux-cahier-des-charges.md). Mobile-first, de
 | 2026-07-20 | S1 (suite) | NOPASSWD sudo activé par l'utilisateur → Phase 0 exécutée via deploy/provision/phase0.sh : durcissement SSH, ufw, fail2ban, unattended-upgrades, Docker 29.6.2 + Compose v5.3.1, auto-cpufreq — tout vérifié actif (P0-01 ✅, P0-02 ✅). CDC UI/UX v1.0 archivé ; PLAN et TRACKING restructurés (Phase D, Phase 3 en 14 tâches, quota-cadeau, GET /api/me/downloads). |
 | 2026-07-20 | S1 (suite 2) | Correction de cohérence PLAN.md §1.2 (arbitrage quota aligné sur la décision « minuit »). Préparation P0-03 : deploy/docker-compose.yml (caddy + duckdns), Caddyfile, page de test, .env.example créés et commités ; copiés sur le Wyse (~/lutecium/deploy), `deploy/.env` créé côté serveur (non commité, email ACME rempli, token DuckDNS vide). `docker compose config` validé. En attente du token DuckDNS de l'utilisateur pour lancer les conteneurs. |
 | 2026-07-20 | S1 (suite 3) | Token DuckDNS reçu de l'utilisateur, écrit dans `deploy/.env` sur le serveur (jamais dans git/chat en clair après saisie). `docker compose up -d` : caddy + duckdns démarrés et stables. DuckDNS confirmé fonctionnel (`lutecium.duckdns.org` → `176.150.50.31`, IP publique réelle). Let's Encrypt bloqué par timeout sur le challenge HTTP-01 → port forwarding 80/443 manquant sur la box Bouygues, seule action restante côté utilisateur pour P0-03/P0-04. |
+| 2026-07-20 | S1 (suite 4) | Utilisateur confirme le port forwarding 80/443 → 192.168.1.186 sur la Bbox. Redémarrage de Caddy : certificat Let's Encrypt obtenu avec succès (challenge tls-alpn-01 validé par les serveurs Let's Encrypt externes). `https://lutecium.duckdns.org` répond 200 avec certificat valide. **Phase 0 terminée (4/4, P0-01 à P0-04 ✅).** |
