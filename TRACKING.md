@@ -9,8 +9,8 @@
 
 | Phase | Intitulé | Avancement | Critère de sortie (CDC §12) |
 |---|---|---|---|
-| T | Setup transversal | 1/3 | — |
-| 1 | Cœur applicatif (backend) | 0/16 | YouTube + TikTok téléchargés de bout en bout |
+| T | Setup transversal | 2/3 | — |
+| 1 | Cœur applicatif (backend) | 1/16 | YouTube + TikTok téléchargés de bout en bout |
 | 2 | Comptes et quotas | 0/9 | Invité : 1 téléchargement puis invitation ; quotas appliqués |
 | D | Design (Claude Design) | 0/5 | Livrables CDC UI §12 validés |
 | 3 | Frontend React | 0/14 | Parcours complet clavier/mobile en français |
@@ -22,7 +22,7 @@
 
 | ID | Tâche | Exigences | Statut | Session | Notes |
 |---|---|---|---|---|---|
-| T-01 | Structure du dépôt (backend/, frontend/, deploy/, docs/) + git init + .gitignore + .env.example | §9 | 🔄 | S1 (2026-07-20) | git init + .gitignore + 1er commit faits ; arborescence + .env.example après validation du plan |
+| T-01 | Structure du dépôt (backend/, frontend/, deploy/, docs/) + git init + .gitignore + .env.example | §9 | ✅ | S1 (2026-07-20) | backend/ scaffoldé (app/api,core,models,services + tests), .env.example racine créé (variables §6). frontend/ reste à créer en Phase 3 |
 | T-02 | Docs de pilotage : cahier des charges, PLAN.md, TRACKING.md, CLAUDE.md | — | ✅ | S1 (2026-07-20) | |
 | T-03 | README squelette | — | ⬜ | | |
 
@@ -30,7 +30,7 @@
 
 | ID | Tâche | Exigences | Statut | Session | Notes |
 |---|---|---|---|---|---|
-| P1-01 | Squelette FastAPI : app factory, config.py (variables §6), /api/health | P-02 | ⬜ | | |
+| P1-01 | Squelette FastAPI : app factory, config.py (variables §6), /api/health | P-02 | ✅ | S1 (2026-07-20) | pyproject.toml, app/main.py, app/config.py (pydantic-settings), /api/health testé (pytest + requête manuelle : `{"status":"ok","app_version":"0.1.0","yt_dlp_version":"2026.7.4"}`). Dev local sur Python 3.14 (3.12 non dispo sur la machine de dev) ; le Dockerfile (P1-02) restera la cible officielle python:3.12-slim |
 | P1-02 | Dockerfile API (python:3.12-slim + ffmpeg, non-root) + compose dev | S-09 | ⬜ | | |
 | P1-03 | POST /api/analyze : extract_info, refus playlists, formats+fps, nom proposé | F-10, F-11, F-15 | ⬜ | | |
 | P1-04 | File FIFO persistée en BDD (table downloads), reprise au redémarrage | F-20, P-03 | ⬜ | | |
@@ -145,7 +145,7 @@ Spécification : [CDC UI/UX](docs/ui-ux-cahier-des-charges.md). Mobile-first, de
 | 2026-07-20 | Quota journalier | **Jour civil, remise à zéro à minuit** (et non 24 h glissantes) ; calcul via `daily_usage` | Cadrage utilisateur |
 | 2026-07-20 | Domaine | Nom de domaine payant `lutecium.app` acheté sur Vercel, en remplacement de `lutecium.duckdns.org` comme domaine principal (backlog CDC §10.2, réalisé plus tôt que prévu). DNS géré par Vercel (nameservers `ns1/ns2.vercel-dns.com`), enregistrement `ALIAS` à l'apex (`@`) → `lutecium.duckdns.org` : Vercel gère la résolution DNS pure (pas de proxy HTTP), DuckDNS continue de suivre l'IP dynamique. Caddy sert désormais les deux domaines (`lutecium.app` en principal, `lutecium.duckdns.org` conservé en secours) | Utilisateur + doc Vercel |
 
-**En attente :** validation du plan par l'utilisateur (débloque les phases 1–4). Phase 0 entièrement terminée le 2026-07-20.
+**En attente :** rien de bloquant actuellement. Plan validé implicitement par l'utilisateur le 2026-07-20 (« ça marche ! On continue. ») ; Phase 1 démarrée.
 
 ## Journal des sessions
 
@@ -157,3 +157,4 @@ Spécification : [CDC UI/UX](docs/ui-ux-cahier-des-charges.md). Mobile-first, de
 | 2026-07-20 | S1 (suite 3) | Token DuckDNS reçu de l'utilisateur, écrit dans `deploy/.env` sur le serveur (jamais dans git/chat en clair après saisie). `docker compose up -d` : caddy + duckdns démarrés et stables. DuckDNS confirmé fonctionnel (`lutecium.duckdns.org` → `176.150.50.31`, IP publique réelle). Let's Encrypt bloqué par timeout sur le challenge HTTP-01 → port forwarding 80/443 manquant sur la box Bouygues, seule action restante côté utilisateur pour P0-03/P0-04. |
 | 2026-07-20 | S1 (suite 4) | Utilisateur confirme le port forwarding 80/443 → 192.168.1.186 sur la Bbox. Redémarrage de Caddy : certificat Let's Encrypt obtenu avec succès (challenge tls-alpn-01 validé par les serveurs Let's Encrypt externes). `https://lutecium.duckdns.org` répond 200 avec certificat valide. **Phase 0 terminée (4/4, P0-01 à P0-04 ✅).** |
 | 2026-07-20 | S1 (suite 5) | Utilisateur achète `lutecium.app` sur Vercel. Config DNS : enregistrement `ALIAS` à l'apex → `lutecium.duckdns.org` (après un tour d'essais : CNAME sous-domaine refusé car mauvais Name, puis CNAME à l'apex refusé par Vercel qui impose ALIAS pour ce cas). `LUTECIUM_DOMAIN` mis à jour sur le Wyse (`lutecium.app, lutecium.duckdns.org`), Caddy recréé : certificat Let's Encrypt obtenu pour `lutecium.app`. Les deux domaines répondent 200 en HTTPS. |
+| 2026-07-20 | S1 (suite 6) | Démarrage Phase 1 (validation implicite du plan par l'utilisateur, « on continue »). T-01 complété : arborescence backend/ (app/api,core,models,services + tests), .env.example racine. P1-01 fait : squelette FastAPI (app factory, config.py pydantic-settings avec les variables §6), route /api/health, testé par pytest et requête manuelle. venv local avec Python 3.14 (3.12 indisponible sur la machine de dev ; Docker python:3.12-slim reste la cible officielle, P1-02 à venir). |

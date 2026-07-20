@@ -1,0 +1,35 @@
+[project]
+name = "lutecium"
+version = "0.1.0"
+description = "Service web auto-hébergé de téléchargement de vidéos (yt-dlp + FastAPI)"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.32",
+    "pydantic-settings>=2.6",
+    "sqlalchemy>=2.0",
+    "yt-dlp>=2024.11",
+    "sse-starlette>=2.1",
+    "itsdangerous>=2.2",
+    "argon2-cffi>=23.1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3",
+    "pytest-asyncio>=0.24",
+    "httpx>=0.27",
+]
+
+[tool.pytest.ini_options]
+markers = [
+    "network: tests nécessitant un accès réseau (exclus par défaut)",
+]
+addopts = "-m 'not network'"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["app*"]
