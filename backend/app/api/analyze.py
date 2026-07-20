@@ -1,9 +1,11 @@
 import asyncio
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, HttpUrl
 
+from app.config import settings
 from app.core.filenames import sanitize_filename
+from app.core.ratelimit import check_rate_limit
 from app.core.ytdlp import AnalyzeError, extract_info
 
 router = APIRouter()
@@ -101,10 +103,14 @@ def _build_response(info: dict) -> AnalyzeResponse:
 
 
 @router.post("/analyze", response_model=AnalyzeResponse)
-async def analyze(payload: AnalyzeRequest) -> AnalyzeResponse:
+async def analyze(payload: AnalyzeRequest, request: Request) -> AnalyzeResponse:
+    client_ip = request.client.host if request.client else "inconnu"
+    if not check_rate_limit(client_ip, settings.analyze_rate_limit_per_minute):
+        raise HTTPException(status_code=429, detail="Trop de requêtes d'analyse. Réessaie dans une minute.")
+
     try:
         info = await asyncio.to_thread(extract_info, str(payload.url))
     except AnalyzeError as exc:
-        raise HTTPException(status_code=422, detail=str(exc)) from exc
+        raise HTTPException(status_code=422, detail=exc.message) from exc
 
     return _build_response(info)

@@ -3,7 +3,8 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-from app.api import analyze, downloads, health
+from app.api import analyze, downloads, files, health
+from app.core.cleanup import cleanup_loop
 from app.core.db import async_session_maker, init_db
 from app.core.events import bus
 from app.core.queue import reconcile_on_startup
@@ -18,7 +19,9 @@ async def lifespan(app: FastAPI):
         await reconcile_on_startup(session)
     await requeue_pending_jobs()
     workers = start_workers()
+    cleanup_task = asyncio.create_task(cleanup_loop())
     yield
+    cleanup_task.cancel()
     for task in workers:
         task.cancel()
 
@@ -28,6 +31,7 @@ def create_app() -> FastAPI:
     app.include_router(health.router, prefix="/api")
     app.include_router(analyze.router, prefix="/api")
     app.include_router(downloads.router, prefix="/api")
+    app.include_router(files.router, prefix="/api")
     return app
 
 
