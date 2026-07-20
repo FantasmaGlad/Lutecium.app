@@ -1,9 +1,9 @@
-from datetime import datetime, timezone
+from datetime import datetime
 
-from sqlalchemy import JSON, DateTime, String
+from sqlalchemy import JSON, DateTime, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.models.base import Base
+from app.models.base import Base, utcnow
 
 
 class DownloadStatus:
@@ -16,17 +16,13 @@ class DownloadStatus:
     EXPIRED = "expired"
 
 
-def _utcnow() -> datetime:
-    return datetime.now(timezone.utc)
-
-
 class Download(Base):
-    """Table `downloads` (§8) — schéma complet introduit progressivement, Alembic à partir de la Phase 2."""
+    """Table `downloads` (§8)."""
 
     __tablename__ = "downloads"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    user_id: Mapped[int | None] = mapped_column(nullable=True)
+    user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
     url: Mapped[str] = mapped_column(String, nullable=False)
     site: Mapped[str | None] = mapped_column(String, nullable=True)
     options: Mapped[dict] = mapped_column(JSON, default=dict)
@@ -34,5 +30,5 @@ class Download(Base):
     size_bytes: Mapped[int | None] = mapped_column(nullable=True)
     status: Mapped[str] = mapped_column(String, default=DownloadStatus.QUEUED, index=True)
     error_message: Mapped[str | None] = mapped_column(String, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
-    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow, onupdate=_utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, onupdate=utcnow)

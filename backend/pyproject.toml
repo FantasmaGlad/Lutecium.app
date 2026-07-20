@@ -9,6 +9,7 @@ dependencies = [
     "pydantic-settings>=2.6",
     "sqlalchemy>=2.0",
     "aiosqlite>=0.20",
+    "alembic>=1.13",
     "yt-dlp>=2024.11",
     "sse-starlette>=2.1",
     "itsdangerous>=2.2",

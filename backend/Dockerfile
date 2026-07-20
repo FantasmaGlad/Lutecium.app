@@ -7,8 +7,9 @@ RUN apt-get update \
 RUN useradd --create-home --uid 1000 lutecium
 WORKDIR /app
 
-COPY pyproject.toml ./
+COPY pyproject.toml alembic.ini ./
 COPY app ./app
+COPY alembic ./alembic
 
 RUN pip install --no-cache-dir .
 
