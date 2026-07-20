@@ -10,6 +10,9 @@ class Settings(BaseSettings):
     # Clé de signature des sessions et des liens de téléchargement (S-04, F-24)
     secret_key: str = "change-me-in-production"
 
+    # Cookie de session Secure (S-04) — désactivable en dev local sur http
+    secure_cookies: bool = True
+
     # Quotas et limites (§6) — défauts codés en dur, overrides runtime via la table settings (P2-08)
     user_daily_quota_gb: float = 20
     guest_download_limit: int = 1
