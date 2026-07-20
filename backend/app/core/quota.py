@@ -3,13 +3,13 @@ from datetime import date
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.config import settings
+from app.core import effective_settings
 from app.models.daily_usage import DailyUsage
 from app.models.user import User, UserRole
 
 
 def quota_bytes_for(user: User) -> float:
-    gb = user.daily_quota_gb if user.daily_quota_gb is not None else settings.user_daily_quota_gb
+    gb = user.daily_quota_gb if user.daily_quota_gb is not None else effective_settings.user_daily_quota_gb()
     return gb * 1024**3
 
 

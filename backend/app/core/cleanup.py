@@ -9,6 +9,8 @@ from sqlalchemy import select
 
 from app.config import settings
 from app.core.db import async_session_maker
+from app.core.runtime_settings import refresh_cache
+from app.core import effective_settings
 from app.models.download import Download, DownloadStatus
 from app.models.guest_download import GuestDownload
 
@@ -21,6 +23,7 @@ _ORPHAN_SAFETY_MULTIPLIER = 3  # filet de sécurité §F-31 : par défaut 3 × 5
 async def cleanup_loop() -> None:
     while True:
         try:
+            await refresh_cache()  # overrides admin (table settings, P2-08)
             await _expire_done_downloads()
             await _purge_orphan_directories()
             await _purge_old_guest_downloads()
@@ -42,7 +45,7 @@ async def _purge_old_guest_downloads() -> None:
 
 async def _expire_done_downloads() -> None:
     """F-30 : les fichiers `done` expirent après FILE_TTL_MINUTES."""
-    cutoff = datetime.now(timezone.utc) - timedelta(minutes=settings.file_ttl_minutes)
+    cutoff = datetime.now(timezone.utc) - timedelta(minutes=effective_settings.file_ttl_minutes())
     async with async_session_maker() as session:
         result = await session.execute(
             select(Download).where(Download.status == DownloadStatus.DONE, Download.updated_at < cutoff)
@@ -59,7 +62,7 @@ async def _purge_orphan_directories() -> None:
     root = Path(settings.downloads_dir)
     if not root.exists():
         return
-    max_age_seconds = settings.file_ttl_minutes * 60 * _ORPHAN_SAFETY_MULTIPLIER
+    max_age_seconds = effective_settings.file_ttl_minutes() * 60 * _ORPHAN_SAFETY_MULTIPLIER
     now = time.time()
     for job_dir in root.iterdir():
         if job_dir.is_dir() and (now - job_dir.stat().st_mtime) > max_age_seconds:

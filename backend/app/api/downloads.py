@@ -9,7 +9,7 @@ from sse_starlette.sse import EventSourceResponse
 
 from app.api.auth import get_current_user
 from app.config import settings
-from app.core import cancellation
+from app.core import cancellation, effective_settings
 from app.core.db import get_session
 from app.core.diskspace import current_downloads_usage_bytes
 from app.core.events import bus
@@ -68,7 +68,7 @@ async def create_download(
                 secure=settings.secure_cookies,
                 samesite="lax",
             )
-        if await guest_download_count(session, client_ip, guest_cookie) >= settings.guest_download_limit:
+        if await guest_download_count(session, client_ip, guest_cookie) >= effective_settings.guest_download_limit():
             raise HTTPException(
                 status_code=403,
                 detail={
@@ -90,11 +90,11 @@ async def create_download(
     active_count = await session.scalar(
         select(func.count()).select_from(Download).where(Download.status.in_(_ACTIVE_STATUSES))
     )
-    if active_count >= settings.max_queue_size:
+    if active_count >= effective_settings.max_queue_size():
         raise HTTPException(status_code=429, detail="La file d'attente est pleine. Réessaie dans quelques minutes.")
 
     usage_bytes = current_downloads_usage_bytes()
-    if usage_bytes >= settings.global_downloads_cap_gb * 1024**3:
+    if usage_bytes >= effective_settings.global_downloads_cap_gb() * 1024**3:
         raise HTTPException(
             status_code=507,
             detail="Le quota disque global du serveur est atteint. Réessaie plus tard.",
@@ -104,7 +104,7 @@ async def create_download(
     if "filename" in options:
         # Nom de fichier personnalisé : jamais passé tel quel à yt-dlp/ffmpeg (S-05, F-13).
         options["filename"] = sanitize_filename(options["filename"])
-    options["max_file_size_gb"] = settings.max_file_size_gb
+    options["max_file_size_gb"] = effective_settings.max_file_size_gb()
 
     download = await enqueue(session, url=str(payload.url), options=options, user_id=user.id if user else None)
     if user is None:

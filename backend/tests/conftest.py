@@ -9,6 +9,7 @@ os.environ.setdefault("SECURE_COOKIES", "false")
 import pytest_asyncio  # noqa: E402
 
 from app.core.db import async_session_maker, init_db  # noqa: E402
+from app.core.runtime_settings import _cache as _runtime_settings_cache  # noqa: E402
 from app.models import Base  # noqa: E402
 
 
@@ -23,3 +24,4 @@ async def _fresh_db():
         for table in reversed(Base.metadata.sorted_tables):
             await session.execute(table.delete())
         await session.commit()
+    _runtime_settings_cache.clear()  # état en mémoire (pas en BDD) du cache d'overrides P2-08
