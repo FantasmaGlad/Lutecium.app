@@ -11,7 +11,7 @@
 |---|---|---|---|
 | T | Setup transversal | 2/3 | — |
 | 1 | Cœur applicatif (backend) | 16/16 ✅ | YouTube + TikTok téléchargés de bout en bout |
-| 2 | Comptes et quotas | 0/9 | Invité : 1 téléchargement puis invitation ; quotas appliqués |
+| 2 | Comptes et quotas | 9/9 ✅ | Invité : 1 téléchargement puis invitation ; quotas appliqués |
 | D | Design (Claude Design) | 0/5 | Livrables CDC UI §12 validés |
 | 3 | Frontend React | 2/14 (amorcées, non finalisées) | Parcours complet clavier/mobile en français |
 | 4 | Salle de contrôle (admin) | 0/7 | Suspension + purge disque en ≤ 3 clics |
@@ -51,15 +51,15 @@
 
 | ID | Tâche | Exigences | Statut | Session | Notes |
 |---|---|---|---|---|---|
-| P2-01 | Alembic init + migration schéma complet §8, SQLite WAL | §8 | ⬜ | | |
-| P2-02 | Inscription libre + hachage argon2id | F-01..03, S-04 | ⬜ | | |
-| P2-03 | Login/logout, sessions 30 j, cookies httpOnly/Secure/SameSite | F-04, S-04 | ⬜ | | |
-| P2-04 | Verrouillage brute-force (5 échecs) | S-06 | ⬜ | | |
-| P2-05 | Mode invité : cookie signé + hash IP, 1 téléchargement, purge quotidienne | F-06..08 | ⬜ | | |
-| P2-06 | Quota journalier + quota individuel + admin exempté + quota-cadeau (la demande qui franchit la limite est acceptée, les suivantes refusées) | §6, A-02, UI §6.4 | ⬜ | | Tranché : jour civil, reset à minuit (2026-07-20) |
-| P2-07 | Reset mdp par l'admin → mdp temporaire + changement forcé | F-05 | ⬜ | | |
-| P2-08 | Table settings + config runtime (BDD prime sur .env) | §8, A-14 | ⬜ | | |
-| P2-09 | Critère de phase : parcours invité + quotas vérifiés | §12 | ⬜ | | |
+| P2-01 | Alembic init + migration schéma complet §8, SQLite WAL | §8 | ✅ | S1 (2026-07-20) | Modèles User/Session/GuestDownload/DailyUsage/Setting. App réelle applique les migrations au démarrage (create_all réservé aux tests). Testé en réel : 7 tables créées, WAL confirmé actif |
+| P2-02 | Inscription libre + hachage argon2id | F-01..03, S-04 | ✅ | S1 (2026-07-20) | argon2-cffi (argon2id). Testé en réel (curl+cookie jar) |
+| P2-03 | Login/logout, sessions 30 j, cookies httpOnly/Secure/SameSite | F-04, S-04 | ✅ | S1 (2026-07-20) | /api/auth/{register,login,logout,me,change-password}. Cookie httpOnly+Secure+SameSite=Lax confirmé en réel. `settings.secure_cookies` ajouté (désactivable en dev http) |
+| P2-04 | Verrouillage brute-force (5 échecs) | S-06 | ✅ | S1 (2026-07-20) | Compteur pseudo+IP en mémoire, 15 min. Testé en réel : 429 après 5 échecs |
+| P2-05 | Mode invité : cookie signé + hash IP, 1 téléchargement, purge quotidienne | F-06..08 | ✅ | S1 (2026-07-20) | Soft limit cookie+IP (hash salé quotidien), purge quotidienne (guest_downloads). Testé en réel : 1er OK, 2e refusé, contournement par suppression du cookie détecté par l'IP |
+| P2-06 | Quota journalier + quota individuel + admin exempté + quota-cadeau (la demande qui franchit la limite est acceptée, les suivantes refusées) | §6, A-02, UI §6.4 | ✅ | S1 (2026-07-20) | Jour civil, minuit (tranché 2026-07-20). Testé en réel : téléchargement-cadeau accepté (dépasse le quota), 2e refusé avec le message exact de la spec UI |
+| P2-07 | Reset mdp par l'admin → mdp temporaire + changement forcé | F-05 | ✅ | S1 (2026-07-20) | POST /api/admin/users/{id}/reset-password. Testé (parcours HTTP complet) : reset → connexion mdp temporaire → changement forcé sans ancien mdp → ancien mdp invalidé |
+| P2-08 | Table settings + config runtime (BDD prime sur .env) | §8, A-14 | ✅ | S1 (2026-07-20) | Cache mémoire rafraîchi au démarrage + toutes les 30s, GET/PATCH /api/admin/settings (whitelist). Testé en réel : override max_queue_size=1 posé par un admin, effet immédiat vérifié sur un vrai POST /api/downloads |
+| P2-09 | Critère de phase : parcours invité + quotas vérifiés | §12 | ✅ | S1 (2026-07-20) | **Critère de sortie de la Phase 2 atteint.** Parcours complet réel : invité télécharge 1 fichier → 2e refusé (invitation à s'inscrire) → inscription → limite invité levée → quota du compte correctement mis à jour. 46 tests pytest passent |
 
 ## Phase D — Design (Claude Design)
 
@@ -147,7 +147,7 @@ Spécification : [CDC UI/UX](docs/ui-ux-cahier-des-charges.md). Mobile-first, de
 
 | 2026-07-20 | Détour UI/UX | Interruption volontaire de l'ordre des phases (Phase 1 backend en cours) pour amorcer la Phase 3/D à la demande de l'utilisateur (« voir le site prendre forme »). Choix de wordmark et palette faits directement dans le code (option 1 du CDC UI §2.1, palette §2.2 telle quelle) plutôt que via une session Claude Design formelle — statut 🧪 (à revalider en Phase D). Reprise du backend (P1-02) ensuite | Demande utilisateur |
 
-**En attente :** rien de bloquant actuellement. Plan validé implicitement par l'utilisateur le 2026-07-20 (« ça marche ! On continue. ») ; Phase 1 démarrée, détour Phase 3/D terminé (squelette déployé), reprise du backend.
+**En attente :** vérification finale du déploiement Phase 1 sur le Wyse — le serveur est devenu injoignable (ping/SSH/HTTPS) pendant la toute dernière étape (téléchargement du fichier via lien signé, seule étape non confirmée ; tout le reste — analyse, création de job, téléchargement, fusion — a été vérifié en production juste avant la coupure). Développement de la Phase 2 poursuivi en attendant (ne nécessite pas le Wyse) ; **Phase 2 backend non encore synchronisée/déployée sur le serveur.**
 
 ## Journal des sessions
 
@@ -168,3 +168,5 @@ Spécification : [CDC UI/UX](docs/ui-ux-cahier-des-charges.md). Mobile-first, de
 | 2026-07-20 | S1 (suite 12) | P1-05 fait : worker (pool asyncio consommant une file en mémoire), bus d'événements thread-safe (events.py), run_download dans ytdlp.py (fusion ffmpeg automatique via yt-dlp, jamais de shell). Note : ASGITransport des tests httpx ne déclenche pas le lifespan → tests unitaires isolés du vrai worker, donc validation en réel indispensable : serveur uvicorn réellement lancé, vraie vidéo YouTube téléchargée et fusionnée (vérifié avec ffprobe : pistes h264+opus), taille exacte en base, et chemin d'échec vérifié (ID vidéo invalide → failed + message FR). Suite : P1-06 (modes audio seul / sous-titres). |
 | 2026-07-20 | S1 (suite 13) | P1-06 fait : modes audio (FFmpegExtractAudio) et sous-titres (writesubtitles) ajoutés au worker, dispatch propre par mode dans ytdlp.py. Testé en réel : mp3 valide produit, .vtt anglais valide produit. Suite : P1-07 (assainissement du nom de fichier personnalisé, à câbler dans le worker). |
 | 2026-07-20 | S1 (suite 14) | **Phase 1 terminée (16/16).** P1-07 à P1-15 développés ensemble (fortement couplés dans worker.py/ytdlp.py/downloads.py) puis validés en réel un par un : nom de fichier personnalisé, SSE (`curl -N` en direct : downloading→progress→done avec bytes/speed/eta réels), estimation du temps d'attente, annulation coopérative en cours de téléchargement (fichiers nettoyés), lien signé (fichier téléchargé et vérifié), TTL/purge (tests pytest dédiés), limites (file pleine → 429, cap disque → 507, fichier trop volumineux → message clair), erreurs FR, rate limiting (429 après 10 requêtes/min). Deux bugs réels trouvés et corrigés pendant les tests : message d'erreur trompeur pour les fichiers trop volumineux (yt-dlp échoue silencieusement), et un test pytest fragile (tampering du dernier caractère base64, bits « don't care »). P1-16 : critère de phase validé avec de vraies vidéos YouTube ET TikTok téléchargées de bout en bout (ffprobe confirme les codecs), 26 tests pytest passent. 1 commit (fonctionnalités fortement couplées, détail par tâche ici). Suite : synchronisation + déploiement sur le Wyse. |
+| 2026-07-20 | S1 (suite 15) | Déploiement backend en production : `lutecium-api` intégré à deploy/docker-compose.yml (build depuis ../backend, volume nommé pour data/), Caddyfile mis à jour (reverse proxy /api/* vers lutecium-api:8000), SECRET_KEY de prod généré et posé uniquement sur le serveur. Backend synchronisé sur le Wyse (~/lutecium/backend), buildé et démarré. Vérifié en réel via le vrai domaine public : /api/health, analyse YouTube, création de job, téléchargement, fusion (statut done + file_url) — tout confirmé fonctionnel, aucun souci de permissions sur le volume Docker non-root. Le Wyse est devenu injoignable (ping/SSH/HTTPS, ~1 min, plus long que les micro-accrocs habituels de la session) juste avant la toute dernière vérification (récupération du fichier via le lien signé) → signalé à l'utilisateur, développement de la Phase 2 lancé en attendant plutôt que de bloquer. |
+| 2026-07-20 | S1 (suite 16) | **Phase 2 terminée (9/9).** P2-01 : Alembic (schéma complet, modèles User/Session/GuestDownload/DailyUsage/Setting) + WAL, testé en réel. P2-02..04 : inscription, connexion, sessions, verrouillage brute-force — testés en réel (curl + cookie jar) ; 2 bugs trouvés et corrigés (cookie Secure non renvoyé par httpx sur http comme un vrai navigateur → `settings.secure_cookies` ; SQLite renvoie des datetimes naïfs même en `timezone=True` → comparaison Python cassée, corrigée avec `as_aware_utc`). P2-05 : mode invité (cookie+IP), bug de fond trouvé et corrigé (base de test en mémoire partagée entre fichiers pytest → nettoyage centralisé dans conftest.py). P2-06 : quota-cadeau conforme à la spec UI, testé en réel avec le message exact. P2-07 : reset admin testé (parcours HTTP complet). P2-08 : overrides runtime testés en réel (effet immédiat d'un changement admin sur l'API). P2-09 : critère de phase validé en réel de bout en bout (invité → 1 téléchargement → invitation → inscription → quota suivi correctement), 46 tests pytest passent. Phase 2 pas encore synchronisée/déployée sur le Wyse (en attente que le serveur soit de nouveau joignable). |
