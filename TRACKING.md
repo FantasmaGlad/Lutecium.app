@@ -15,7 +15,7 @@
 | D | Design (Claude Design) | 0/5 | Livrables CDC UI §12 validés |
 | 3 | Frontend React | 0/14 | Parcours complet clavier/mobile en français |
 | 4 | Salle de contrôle (admin) | 0/7 | Suspension + purge disque en ≤ 3 clics |
-| 0 | Socle serveur (Wyse) | 2/4 | HTTPS répond depuis l'extérieur |
+| 0 | Socle serveur (Wyse) | 2/4 (P0-03 en cours) | HTTPS répond depuis l'extérieur |
 | 5 | Industrialisation | 0/8 | Réinstallation de zéro < 30 min |
 
 ## Phase T — Setup transversal
@@ -112,7 +112,7 @@ Spécification : [CDC UI/UX](docs/ui-ux-cahier-des-charges.md). Mobile-first, de
 |---|---|---|---|---|---|
 | P0-01 | Script minimal : durcissement SSH, ufw, fail2ban, unattended-upgrades | S-01, S-02, S-08, S-10 | ✅ | S1 (2026-07-20) | deploy/provision/phase0.sh — vérifié : password auth off, root off, ufw (22=LAN, 80/443 publics), fail2ban + unattended actifs |
 | P0-02 | Docker + Compose + auto-cpufreq sur Debian 13 | P-01 | ✅ | S1 (2026-07-20) | Docker 29.6.2 + Compose v5.3.1 (dépôt officiel), fanta dans le groupe docker, auto-cpufreq actif |
-| P0-03 | Caddy + page de test + DuckDNS + HTTPS Let's Encrypt | S-03 | ⛔ | | En attente : token DuckDNS + port forwarding 80/443 sur la box (actions utilisateur) |
+| P0-03 | Caddy + page de test + DuckDNS + HTTPS Let's Encrypt | S-03 | 🔄 | S1 (2026-07-20) | deploy/docker-compose.yml + Caddyfile + test-page prêts, copiés sur le Wyse (~/lutecium/deploy), `docker compose config` validé. `deploy/.env` créé sur le serveur (email ACME rempli) mais `DUCKDNS_TOKEN` vide → en attente du token utilisateur avant `docker compose up` (éviter de gaspiller des tentatives Let's Encrypt tant que le DNS ne pointe pas) |
 | P0-04 | Critère de phase : HTTPS répond depuis l'extérieur | §12 | ⬜ | | |
 
 ## Phase 5 — Industrialisation
@@ -144,7 +144,7 @@ Spécification : [CDC UI/UX](docs/ui-ux-cahier-des-charges.md). Mobile-first, de
 
 | 2026-07-20 | Quota journalier | **Jour civil, remise à zéro à minuit** (et non 24 h glissantes) ; calcul via `daily_usage` | Cadrage utilisateur |
 
-**En attente :** validation du plan par l'utilisateur (débloque les phases 1–4) · token DuckDNS + port forwarding 80/443 sur la box (débloquent P0-03/P0-04).
+**En attente :** validation du plan par l'utilisateur (débloque les phases 1–4) · token DuckDNS (l'utilisateur récupère `lutecium.duckdns.org` + son token sur duckdns.org) + confirmation du port forwarding 80/443 sur la box (débloquent la suite de P0-03 et P0-04). `lutecium.duckdns.org` ne résout encore rien au 2026-07-20 : sous-domaine pas encore créé côté DuckDNS.
 
 ## Journal des sessions
 
@@ -152,3 +152,4 @@ Spécification : [CDC UI/UX](docs/ui-ux-cahier-des-charges.md). Mobile-first, de
 |---|---|---|
 | 2026-07-20 | S1 | Analyse du cahier des charges, création de docs/PLAN.md, TRACKING.md, CLAUDE.md, docs/cahier-des-charges.md. Cadrage reçu : plan à valider, git local, TypeScript, Wyse prêt. git init + .gitignore + 1er commit. Connexion SSH au Wyse vérifiée par clé (Debian 13, 21 Go libres, Docker absent) ; installation bloquée par sudo-avec-mot-de-passe → question posée. |
 | 2026-07-20 | S1 (suite) | NOPASSWD sudo activé par l'utilisateur → Phase 0 exécutée via deploy/provision/phase0.sh : durcissement SSH, ufw, fail2ban, unattended-upgrades, Docker 29.6.2 + Compose v5.3.1, auto-cpufreq — tout vérifié actif (P0-01 ✅, P0-02 ✅). CDC UI/UX v1.0 archivé ; PLAN et TRACKING restructurés (Phase D, Phase 3 en 14 tâches, quota-cadeau, GET /api/me/downloads). |
+| 2026-07-20 | S1 (suite 2) | Correction de cohérence PLAN.md §1.2 (arbitrage quota aligné sur la décision « minuit »). Préparation P0-03 : deploy/docker-compose.yml (caddy + duckdns), Caddyfile, page de test, .env.example créés et commités ; copiés sur le Wyse (~/lutecium/deploy), `deploy/.env` créé côté serveur (non commité, email ACME rempli, token DuckDNS vide). `docker compose config` validé. En attente du token DuckDNS de l'utilisateur pour lancer les conteneurs. |

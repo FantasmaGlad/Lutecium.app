@@ -1,0 +1,35 @@
+services:
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./test-page:/srv/test:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    env_file: .env
+    networks:
+      - lutecium
+
+  duckdns:
+    image: lscr.io/linuxserver/duckdns:latest
+    restart: unless-stopped
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=Europe/Paris
+      - SUBDOMAINS=${DUCKDNS_SUBDOMAIN}
+      - TOKEN=${DUCKDNS_TOKEN}
+    networks:
+      - lutecium
+
+networks:
+  lutecium:
+    driver: bridge
+
+volumes:
+  caddy_data:
+  caddy_config:
