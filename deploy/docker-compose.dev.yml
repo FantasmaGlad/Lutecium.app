@@ -1,0 +1,15 @@
+# Compose de développement local : lutecium-api seul, hot-reload sur le code monté.
+services:
+  lutecium-api:
+    build:
+      context: ../backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      - ../backend/app:/app/app:ro
+      - downloads_dev:/app/data/downloads
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+
+volumes:
+  downloads_dev:

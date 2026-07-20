@@ -10,7 +10,7 @@
 | Phase | Intitulé | Avancement | Critère de sortie (CDC §12) |
 |---|---|---|---|
 | T | Setup transversal | 2/3 | — |
-| 1 | Cœur applicatif (backend) | 1/16 | YouTube + TikTok téléchargés de bout en bout |
+| 1 | Cœur applicatif (backend) | 2/16 | YouTube + TikTok téléchargés de bout en bout |
 | 2 | Comptes et quotas | 0/9 | Invité : 1 téléchargement puis invitation ; quotas appliqués |
 | D | Design (Claude Design) | 0/5 | Livrables CDC UI §12 validés |
 | 3 | Frontend React | 2/14 (amorcées, non finalisées) | Parcours complet clavier/mobile en français |
@@ -31,7 +31,7 @@
 | ID | Tâche | Exigences | Statut | Session | Notes |
 |---|---|---|---|---|---|
 | P1-01 | Squelette FastAPI : app factory, config.py (variables §6), /api/health | P-02 | ✅ | S1 (2026-07-20) | pyproject.toml, app/main.py, app/config.py (pydantic-settings), /api/health testé (pytest + requête manuelle : `{"status":"ok","app_version":"0.1.0","yt_dlp_version":"2026.7.4"}`). Dev local sur Python 3.14 (3.12 non dispo sur la machine de dev) ; le Dockerfile (P1-02) restera la cible officielle python:3.12-slim |
-| P1-02 | Dockerfile API (python:3.12-slim + ffmpeg, non-root) + compose dev | S-09 | ⬜ | | |
+| P1-02 | Dockerfile API (python:3.12-slim + ffmpeg, non-root) + compose dev | S-09 | ✅ | S1 (2026-07-20) | backend/Dockerfile + .dockerignore, deploy/docker-compose.dev.yml (hot-reload). Buildé et testé sur le Wyse (pas de Docker en local) : /api/health OK, utilisateur non-root confirmé (uid=1000 lutecium), ffmpeg 7.1.5 présent. Image de test supprimée après validation, rien laissé sur le serveur |
 | P1-03 | POST /api/analyze : extract_info, refus playlists, formats+fps, nom proposé | F-10, F-11, F-15 | ⬜ | | |
 | P1-04 | File FIFO persistée en BDD (table downloads), reprise au redémarrage | F-20, P-03 | ⬜ | | |
 | P1-05 | Worker téléchargement vidéo + fusion ffmpeg + hooks de progression | F-12, F-14 | ⬜ | | |
@@ -162,3 +162,4 @@ Spécification : [CDC UI/UX](docs/ui-ux-cahier-des-charges.md). Mobile-first, de
 | 2026-07-20 | S1 (suite 6) | Démarrage Phase 1 (validation implicite du plan par l'utilisateur, « on continue »). T-01 complété : arborescence backend/ (app/api,core,models,services + tests), .env.example racine. P1-01 fait : squelette FastAPI (app factory, config.py pydantic-settings avec les variables §6), route /api/health, testé par pytest et requête manuelle. venv local avec Python 3.14 (3.12 indisponible sur la machine de dev ; Docker python:3.12-slim reste la cible officielle, P1-02 à venir). |
 | 2026-07-20 | S1 (suite 7) | Détour demandé par l'utilisateur : amorce Phase 3/D. `frontend/` scaffoldé (Vite + React + TS), tokens de design (2 thèmes, CDC UI §2.2/§2.3), Header (burger, wordmark animé, toggle thème, bouton compte), État A (champ URL + coller presse-papier + sites supportés). Tab title `lutecium▌`, favicon `lu>`. Vérifié dans le navigateur (thème clair/sombre, mobile 375px) et par `tsc --noEmit` + `npm run build` (OK). P3-01/02/03 marquées 🧪 (amorcées, non finalisées — à raffiner en Phase D). |
 | 2026-07-20 | S1 (suite 8) | Déploiement manuel du frontend sur le Wyse à la demande de l'utilisateur : Caddyfile + docker-compose.yml modifiés (`/srv/site` remplace `/srv/test`), `frontend/dist` copié via scp dans `~/lutecium/deploy/site`, ancienne page de test supprimée (repo + serveur), Caddy recréé. Vérifié : `https://lutecium.app` sert le vrai squelette (confirmé par navigateur). Incident réseau transitoire vers le Wyse pendant l'opération (2e occurrence de la session), résolu tout seul en ~15s. Reprise du backend : passage à P1-02. |
+| 2026-07-20 | S1 (suite 9) | P1-02 fait : backend/Dockerfile (python:3.12-slim + ffmpeg, user non-root) + .dockerignore + deploy/docker-compose.dev.yml. Pas de Docker sur la machine de dev → build et tests faits directement sur le Wyse (répertoire temporaire, image supprimée après coup, rien laissé en place) : /api/health OK, uid=1000 non-root confirmé, ffmpeg 7.1.5 OK. Passage à P1-03 (POST /api/analyze). |
