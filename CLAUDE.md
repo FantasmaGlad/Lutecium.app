@@ -7,6 +7,7 @@ Service web auto-hébergé de téléchargement de vidéos (yt-dlp + FastAPI + Re
 1. **[TRACKING.md](TRACKING.md)** — état des tâches et journal des sessions. **Toujours le lire en premier.**
 2. **[docs/PLAN.md](docs/PLAN.md)** — plan d'implémentation, décisions techniques, contrats API.
 3. **[docs/cahier-des-charges.md](docs/cahier-des-charges.md)** — source de vérité des exigences (IDs F-xx, A-xx, S-xx, P-xx, M-xx).
+4. **[docs/ui-ux-cahier-des-charges.md](docs/ui-ux-cahier-des-charges.md)** — source de vérité UI/UX : design, états A→F de l'interface, animations, ton (tutoiement), quota-cadeau.
 
 ## Protocole multi-sessions (obligatoire)
 
@@ -27,7 +28,7 @@ Service web auto-hébergé de téléchargement de vidéos (yt-dlp + FastAPI + Re
 - **Langue** : UI, messages d'erreur et docs en **français** ; code, identifiants et noms de commits techniques en anglais (message de commit en français accepté).
 - **Backend** : Python 3.12, FastAPI, SQLAlchemy 2.x (+ Alembic à partir de la Phase 2), pytest. Tests réseau marqués `@pytest.mark.network`.
 - **yt-dlp** : uniquement via son API Python — jamais d'URL passée à un shell (S-05, non négociable).
-- **Frontend** : React + Vite, français uniquement, thème sombre type Cobalt.
+- **Frontend** : React + Vite + TypeScript, français uniquement (tutoiement), design selon le CDC UI/UX (monochrome deux thèmes, mobile-first, monospace + sans-serif, animations expressives mais informatives).
 - **Config** : `.env` (jamais commité, `.env.example` à jour) ; défauts du §6 codés en dur ; overrides runtime via la table `settings`.
 - **Sécurité** : les exigences S-01 à S-11 du cahier des charges priment sur toute commodité de dev.
 - **Fichiers temporaires** : tout passe par `data/downloads/` (ignoré par git), un sous-répertoire par job.

@@ -2,6 +2,7 @@
 
 **Version :** 1.0 — 20 juillet 2026
 **Référence :** [cahier des charges v1.0](cahier-des-charges.md) (source de vérité des exigences)
+**Référence UI/UX :** [cahier des charges UI/UX v1.0](ui-ux-cahier-des-charges.md) (source de vérité de l'interface)
 **Suivi d'avancement :** [TRACKING.md](../TRACKING.md) (état des tâches, à jour en temps réel)
 **Protocole multi-agents :** [CLAUDE.md](../CLAUDE.md)
 
@@ -42,7 +43,7 @@
 | Playlists | `noplaylist=True` systématique ; si `extract_info` retourne `_type == "playlist"` → 422 avec message F-15. URL mixte vidéo+liste → on prend la vidéo. | F-15 |
 | BDD Phase 1 | SQLAlchemy + `create_all` sur la seule table `downloads` ; Alembic introduit en Phase 2 avec une migration initiale = schéma complet §8 | Éviter la cérémonie Alembic tant que le schéma bouge |
 | Tests | pytest + httpx (`ASGITransport`) ; tests dépendant du réseau marqués `@pytest.mark.network` (exclus par défaut en CI/machine sans réseau) | P1-16 |
-| Frontend | Vite + React, CSS léger (modules), thème sombre type Cobalt, français uniquement | §1.3, Phase 3 |
+| Frontend | Vite + React + TypeScript, Framer Motion (ou équivalent tranché en phase design), deux thèmes monochromes du CDC UI, monospace + sans-serif, PWA avec share target Android | CDC UI §2, §8, §9 |
 
 ---
 
@@ -93,8 +94,9 @@ Figés pour permettre le travail backend/frontend en parallèle. **Toute évolut
 | POST | `/api/downloads/{id}/cancel` | propriétaire | annulation en file ou en cours (F-23) |
 | GET | `/api/files/{token}` | lien signé | téléchargement du fichier final (F-24) |
 | POST | `/api/auth/register` / `login` / `logout` | public | comptes (F-01..F-04) |
-| GET | `/api/auth/me` | user | session courante + flag « mdp à changer » |
+| GET | `/api/auth/me` | user | session courante, flag « mdp à changer », conso/quota du jour (jauge UI §6.3) |
 | POST | `/api/auth/change-password` | user | changement de mot de passe (F-05) |
+| GET | `/api/me/downloads` | user | historique paginé (titre, site, taille, date, statut) ; « retélécharger » = nouveau POST `/api/downloads` avec les mêmes options (UI §6.3) |
 | GET/PATCH/DELETE | `/api/admin/users`, `/api/admin/users/{id}` | admin | A-10 (suspension, quota individuel, reset mdp, suppression) |
 | GET | `/api/admin/guests` | admin | téléchargements invités, IP anonymisée (A-10) |
 | GET | `/api/admin/metrics` | admin | A-11 (par jour/semaine, volume, top sites, taux d'erreur, file en direct) |
@@ -140,22 +142,32 @@ Structure du dépôt, git, `.gitignore` (venv, node_modules, `.env`, `*.db`, `da
 - **P2-03** : login/logout, sessions 30 j (cookie httpOnly, Secure — désactivable en dev http —, SameSite=Lax).
 - **P2-04** : verrouillage temporaire après 5 échecs de connexion (S-06), compteur par pseudo + IP.
 - **P2-05** : mode invité (F-06..F-08) : cookie signé + hash IP salé, 1 téléchargement, puis 401 avec code dédié que l'UI traduira en invitation à s'inscrire.
-- **P2-06** : quota 20 GB/24 h glissantes (calcul sur `downloads`, cf. §1.2-2), quota individuel nullable, admin exempté (A-02).
+- **P2-06** : quota 20 GB/24 h glissantes (calcul sur `downloads`, cf. §1.2-2), quota individuel nullable, admin exempté (A-02). **Quota-cadeau** (CDC UI §6.4) : la demande qui ferait franchir la limite est acceptée (réponse marquée `gift: true` pour l'animation), les suivantes refusées avec l'heure de réinitialisation. ⚠️ Arbitrage en cours : fenêtre glissante 24 h (CDC technique §6) vs réinitialisation à minuit (CDC UI §6.4). |
 - **P2-07** : reset admin → mot de passe temporaire + flag « à changer » forçant le passage par `change-password` (F-05).
 - **P2-08** : table `settings` + service de config runtime (les valeurs BDD priment sur `.env`).
 - **P2-09** : validation du critère de phase.
 
+### Phase D — Design (Claude Design)
+Livrables du CDC UI §12, réalisés avec Claude Design avant/pendant la Phase 3 : design system léger (D-01), wordmark — 3 pistes, 1 retenue (D-02), maquettes haute fidélité mobile + desktop des deux thèmes (D-03), prototype des animations du moment signature B→E + quota-cadeau (D-04), vérification AA (D-05). Les choix ouverts (monospace exacte, wordmark, bibliothèque d'animation) y sont tranchés et consignés dans le design system.
+
 ### Phase 3 — Frontend React
 **Critère de sortie :** parcours complet au clavier et sur mobile, en français.
+**Spécification de référence : [CDC UI/UX](ui-ux-cahier-des-charges.md)** (états A→F, gestionnaire de téléchargements, quota-cadeau, PWA).
 
-- **P3-01** : squelette Vite + React, thème sombre type Cobalt, proxy dev vers l'API.
-- **P3-02** : écran principal : champ URL unique + bouton (F-10).
-- **P3-03** : panneau d'options post-analyse : formats (résolution + fps), audio, sous-titres, nom de fichier pré-rempli (F-11..F-13).
-- **P3-04** : file + progression : `EventSource` natif, reconnexion, position en file, %, vitesse, ETA, étape ffmpeg, bouton annuler, lien final (F-21..F-24).
-- **P3-05** : écrans auth : inscription, connexion, changement de mot de passe forcé.
-- **P3-06** : parcours invité : après le 1er téléchargement, bandeau d'invitation à s'inscrire (F-06).
-- **P3-07** : erreurs françaises partout, navigation clavier, responsive mobile (critère de phase).
-- **P3-08** : build de production servi par Caddy (`/api/*` → lutecium-api, le reste → statique).
+- **P3-01** : squelette Vite + React + TypeScript, tokens du design system, thèmes sombre/clair + toggle + `prefers-color-scheme` (UI §2).
+- **P3-02** : layout global : header (burger, wordmark, toggle thème, compte) + drawer de navigation (UI §3.1).
+- **P3-03** : états A/B : champ URL, bouton coller depuis le presse-papier, analyse automatique dès URL valide détectée, erreurs inline (F-10, UI §4).
+- **P3-04** : état C : carte aperçu, `Télécharger` / `Audio seul`, options avancées repliées, nom de fichier éditable, poids estimé toujours visible (F-11..F-13, UI §4).
+- **P3-05** : états D/E/F : `EventSource` natif avec reconnexion, position en file, %, vitesse, ETA, étape ffmpeg, annulation, célébration de fin, compte à rebours TTL, erreurs actionnables avec lien `détails` (F-21..F-24, UI §4).
+- **P3-06** : gestionnaire de téléchargements : barre repliée + badge, liste temps réel des tâches de la session, actions par ligne (UI §5.2).
+- **P3-07** : toasts + notifications navigateur (permission demandée au premier téléchargement mis en file) (UI §5.1).
+- **P3-08** : pages auth : inscription, connexion, changement de mot de passe forcé, reprise de l'URL en attente après inscription (UI §6.2).
+- **P3-09** : parcours invité : carte d'invitation post-téléchargement, blocage doux au 2e essai (F-06, UI §6.1).
+- **P3-10** : `/historique` (avec `retélécharger`) + `/compte` (jauge de quota, y compris état dépassé « cadeau ») (UI §6.3).
+- **P3-11** : quota-cadeau côté UI : jauge qui dépasse le maximum, animation dédiée, messages (UI §6.4).
+- **P3-12** : PWA : manifest, icône, share target Android (URL pré-collée + analyse lancée) — faisabilité à valider, pas de mode hors-ligne (UI §8).
+- **P3-13** : accessibilité : contrastes AA, navigation clavier complète, `aria-live` sur la progression, `prefers-reduced-motion` (UI §11).
+- **P3-14** : build de production servi par Caddy (`/api/*` → lutecium-api, le reste → statique).
 
 ### Phase 4 — Salle de contrôle (admin)
 **Critère de sortie :** suspension d'un compte et purge disque réalisables en ≤ 3 clics.
@@ -165,7 +177,7 @@ Structure du dépôt, git, `.gitignore` (venv, node_modules, `.env`, `*.db`, `da
 - **P4-03** : API système (A-12) — psutil + `/sys/class/thermal` monté ro ; alerte disque (risque §11).
 - **P4-04** : journal (A-13) + rotation des logs (M-02).
 - **P4-05** : actions rapides (A-14) — la maj yt-dlp fait `pip install -U yt-dlp` dans le conteneur puis recharge les workers proprement (pas pendant un téléchargement en cours).
-- **P4-06** : UI dashboard (vues : utilisateurs, invités, métriques, système, journal, réglages, actions).
+- **P4-06** : UI dashboard : 4 sections (Vue d'ensemble, Utilisateurs, Système, Journaux), style « mission control » dense et monochrome, SSE temps réel, desktop-first (CDC UI §7).
 - **P4-07** : validation du critère de phase.
 
 ### Phase 0 — Socle serveur (nécessite le Wyse)

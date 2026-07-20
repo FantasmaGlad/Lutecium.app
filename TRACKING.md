@@ -12,9 +12,10 @@
 | T | Setup transversal | 1/3 | — |
 | 1 | Cœur applicatif (backend) | 0/16 | YouTube + TikTok téléchargés de bout en bout |
 | 2 | Comptes et quotas | 0/9 | Invité : 1 téléchargement puis invitation ; quotas appliqués |
-| 3 | Frontend React | 0/8 | Parcours complet clavier/mobile en français |
+| D | Design (Claude Design) | 0/5 | Livrables CDC UI §12 validés |
+| 3 | Frontend React | 0/14 | Parcours complet clavier/mobile en français |
 | 4 | Salle de contrôle (admin) | 0/7 | Suspension + purge disque en ≤ 3 clics |
-| 0 | Socle serveur (Wyse) | 0/4 | HTTPS répond depuis l'extérieur |
+| 0 | Socle serveur (Wyse) | 2/4 | HTTPS répond depuis l'extérieur |
 | 5 | Industrialisation | 0/8 | Réinstallation de zéro < 30 min |
 
 ## Phase T — Setup transversal
@@ -55,23 +56,43 @@
 | P2-03 | Login/logout, sessions 30 j, cookies httpOnly/Secure/SameSite | F-04, S-04 | ⬜ | | |
 | P2-04 | Verrouillage brute-force (5 échecs) | S-06 | ⬜ | | |
 | P2-05 | Mode invité : cookie signé + hash IP, 1 téléchargement, purge quotidienne | F-06..08 | ⬜ | | |
-| P2-06 | Quota 20 GB/24 h glissantes + quota individuel + admin exempté | §6, A-02 | ⬜ | | |
+| P2-06 | Quota journalier + quota individuel + admin exempté + quota-cadeau (la demande qui franchit la limite est acceptée, les suivantes refusées) | §6, A-02, UI §6.4 | ⬜ | | Arbitrage en attente : 24 h glissantes vs minuit |
 | P2-07 | Reset mdp par l'admin → mdp temporaire + changement forcé | F-05 | ⬜ | | |
 | P2-08 | Table settings + config runtime (BDD prime sur .env) | §8, A-14 | ⬜ | | |
 | P2-09 | Critère de phase : parcours invité + quotas vérifiés | §12 | ⬜ | | |
 
-## Phase 3 — Frontend React
+## Phase D — Design (Claude Design)
+
+Livrables du CDC UI §12, à réaliser avec Claude Design avant/pendant la Phase 3.
 
 | ID | Tâche | Exigences | Statut | Session | Notes |
 |---|---|---|---|---|---|
-| P3-01 | Squelette Vite + React + TypeScript, thème type Cobalt, proxy dev API | §3.1 | ⬜ | | TypeScript validé (cadrage 2026-07-20) |
-| P3-02 | Écran principal : champ URL + analyse | F-10 | ⬜ | | |
-| P3-03 | Options : formats (résolution+fps), audio, sous-titres, nom de fichier | F-11..13 | ⬜ | | |
-| P3-04 | File + progression SSE + annulation + lien final | F-21..24 | ⬜ | | |
-| P3-05 | Écrans auth (inscription, connexion, changement mdp forcé) | F-01..05 | ⬜ | | Dépend de P2 |
-| P3-06 | Parcours invité + invitation à s'inscrire | F-06 | ⬜ | | Dépend de P2-05 |
-| P3-07 | Erreurs FR partout, navigation clavier, responsive mobile | F-16, §12 | ⬜ | | |
-| P3-08 | Build production servi par Caddy | §3.3 | ⬜ | | |
+| D-01 | Design system léger : tokens (2 thèmes, typo, espacements, rayons) + composants de base | UI §2, §12.1 | ⬜ | | Monospace exacte tranchée ici |
+| D-02 | Wordmark : 3 pistes explorées, 1 retenue, déclinaisons (header, favicon, icône PWA) | UI §2.1, §12.2 | ⬜ | | |
+| D-03 | Maquettes HD mobile+desktop, 2 thèmes : états A→F, gestionnaire, auth, historique/compte, invité, admin | UI §12.3 | ⬜ | | |
+| D-04 | Prototype des animations du moment signature (B→E + quota-cadeau) | UI §9, §12.4 | ⬜ | | |
+| D-05 | Vérification contrastes WCAG AA sur maquettes finales | UI §11, §12.5 | ⬜ | | |
+
+## Phase 3 — Frontend React
+
+Spécification : [CDC UI/UX](docs/ui-ux-cahier-des-charges.md). Mobile-first, deux thèmes monochromes, TypeScript.
+
+| ID | Tâche | Exigences | Statut | Session | Notes |
+|---|---|---|---|---|---|
+| P3-01 | Squelette Vite + React + TS, tokens design system, thèmes sombre/clair + toggle + prefers-color-scheme | UI §2 | ⬜ | | TypeScript validé (cadrage 2026-07-20) |
+| P3-02 | Layout global : header (burger, wordmark, toggle, compte) + drawer navigation | UI §3.1 | ⬜ | | |
+| P3-03 | États A/B : champ URL, bouton coller, analyse auto dès URL valide, erreurs inline | F-10, UI §4 | ⬜ | | |
+| P3-04 | État C : aperçu, Télécharger / Audio seul, options avancées, nom de fichier, poids estimé | F-11..13, UI §4 | ⬜ | | |
+| P3-05 | États D/E/F : progression SSE, annulation, célébration, compte à rebours TTL, erreurs actionnables | F-21..24, UI §4 | ⬜ | | |
+| P3-06 | Gestionnaire de téléchargements (barre repliée, badge, liste temps réel, actions par ligne) | UI §5.2 | ⬜ | | |
+| P3-07 | Toasts + notifications navigateur (permission au 1er téléchargement en file) | UI §5.1 | ⬜ | | |
+| P3-08 | Pages auth : login/register, changement mdp forcé, reprise de l'URL en attente | F-01..05, UI §6.2 | ⬜ | | Dépend de P2 |
+| P3-09 | Parcours invité : carte d'invitation post-téléchargement, blocage doux | F-06, UI §6.1 | ⬜ | | Dépend de P2-05 |
+| P3-10 | /historique (avec retélécharger) + /compte (jauge quota, état dépassé) | UI §6.3 | ⬜ | | Utilise GET /api/me/downloads |
+| P3-11 | Quota-cadeau : jauge qui dépasse + animation + messages dédiés | UI §6.4 | ⬜ | | Dépend de P2-06 |
+| P3-12 | PWA : manifest, icône, share target Android (URL pré-collée + analyse lancée) | UI §8 | ⬜ | | Faisabilité à valider, pas de mode hors-ligne |
+| P3-13 | Accessibilité : AA, clavier complet, aria-live, prefers-reduced-motion | UI §11 | ⬜ | | |
+| P3-14 | Build production servi par Caddy | §3.3 | ⬜ | | |
 
 ## Phase 4 — Salle de contrôle (admin)
 
@@ -82,16 +103,16 @@
 | P4-03 | API état système (CPU, fréquence, RAM, température, disque) + alerte disque | A-12 | ⬜ | | Monter /sys ro dans le conteneur |
 | P4-04 | Journal téléchargements + erreurs, rotation | A-13, M-02 | ⬜ | | |
 | P4-05 | Actions rapides : purge downloads, vidage file, maj yt-dlp | A-14 | ⬜ | | |
-| P4-06 | UI dashboard complète | A-10..14 | ⬜ | | |
+| P4-06 | UI dashboard : 4 sections (Vue, Users, Sys, Logs), style mission control monochrome, SSE temps réel | A-10..14, UI §7 | ⬜ | | |
 | P4-07 | Critère de phase : suspension + purge en ≤ 3 clics | §12 | ⬜ | | |
 
 ## Phase 0 — Socle serveur (Wyse accessible en SSH par clé ✅)
 
 | ID | Tâche | Exigences | Statut | Session | Notes |
 |---|---|---|---|---|---|
-| P0-01 | Script minimal : durcissement SSH, ufw, fail2ban, unattended-upgrades | S-01, S-02, S-08, S-10 | ⛔ | S1 (2026-07-20) | sudo exige un mot de passe sur le Wyse → en attente du choix utilisateur (cf. § Décisions) |
-| P0-02 | Docker + Compose + auto-cpufreq sur Debian 13 | P-01 | ⬜ | | |
-| P0-03 | Caddy + page de test + DuckDNS + HTTPS Let's Encrypt | S-03 | ⬜ | | |
+| P0-01 | Script minimal : durcissement SSH, ufw, fail2ban, unattended-upgrades | S-01, S-02, S-08, S-10 | ✅ | S1 (2026-07-20) | deploy/provision/phase0.sh — vérifié : password auth off, root off, ufw (22=LAN, 80/443 publics), fail2ban + unattended actifs |
+| P0-02 | Docker + Compose + auto-cpufreq sur Debian 13 | P-01 | ✅ | S1 (2026-07-20) | Docker 29.6.2 + Compose v5.3.1 (dépôt officiel), fanta dans le groupe docker, auto-cpufreq actif |
+| P0-03 | Caddy + page de test + DuckDNS + HTTPS Let's Encrypt | S-03 | ⛔ | | En attente : token DuckDNS + port forwarding 80/443 sur la box (actions utilisateur) |
 | P0-04 | Critère de phase : HTTPS répond depuis l'extérieur | §12 | ⬜ | | |
 
 ## Phase 5 — Industrialisation
@@ -118,12 +139,14 @@
 | 2026-07-20 | Git | Dépôt local, un commit par tâche terminée ; remote GitHub plus tard | Cadrage utilisateur |
 | 2026-07-20 | Frontend | TypeScript | Cadrage utilisateur |
 | 2026-07-20 | Démarrage | Le plan doit être **validé par l'utilisateur** avant de coder les phases 1–4 ; la préparation du serveur (Phase 0) démarre tout de suite | Cadrage utilisateur |
-| 2026-07-20 | Accès Wyse | SSH par clé uniquement (`fanta@192.168.1.186`, hostname `debian-malefique`) ; **aucun mot de passe utilisé ni stocké** | S-02 |
+| 2026-07-20 | Accès Wyse | SSH par clé uniquement (`fanta@192.168.1.186`, hostname `debian-malefique`) ; **aucun mot de passe utilisé ni stocké** ; sudo NOPASSWD activé par l'utilisateur | S-02 |
+| 2026-07-20 | CDC UI/UX | v1.0 ajouté (docs/ui-ux-cahier-des-charges.md) : Phase D (design) créée, Phase 3 restructurée en 14 tâches, quota-cadeau intégré à P2-06, `GET /api/me/downloads` ajouté aux contrats | Utilisateur |
 
-**En attente :** validation du plan par l'utilisateur (débloque les phases 1–4) · méthode d'accès root sur le Wyse (question posée le 2026-07-20, débloque P0-01/P0-02).
+**En attente :** validation du plan par l'utilisateur (débloque les phases 1–4) · arbitrage quota « 24 h glissantes » (CDC technique §6) vs « réinitialisation à minuit » (CDC UI §6.4) · token DuckDNS + port forwarding 80/443 sur la box (débloquent P0-03/P0-04).
 
 ## Journal des sessions
 
 | Date | Session | Travail effectué |
 |---|---|---|
 | 2026-07-20 | S1 | Analyse du cahier des charges, création de docs/PLAN.md, TRACKING.md, CLAUDE.md, docs/cahier-des-charges.md. Cadrage reçu : plan à valider, git local, TypeScript, Wyse prêt. git init + .gitignore + 1er commit. Connexion SSH au Wyse vérifiée par clé (Debian 13, 21 Go libres, Docker absent) ; installation bloquée par sudo-avec-mot-de-passe → question posée. |
+| 2026-07-20 | S1 (suite) | NOPASSWD sudo activé par l'utilisateur → Phase 0 exécutée via deploy/provision/phase0.sh : durcissement SSH, ufw, fail2ban, unattended-upgrades, Docker 29.6.2 + Compose v5.3.1, auto-cpufreq — tout vérifié actif (P0-01 ✅, P0-02 ✅). CDC UI/UX v1.0 archivé ; PLAN et TRACKING restructurés (Phase D, Phase 3 en 14 tâches, quota-cadeau, GET /api/me/downloads). |
