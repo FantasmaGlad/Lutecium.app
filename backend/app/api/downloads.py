@@ -1,12 +1,15 @@
 import json
+from datetime import datetime
 from typing import Literal
+from urllib.parse import urlparse
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from pydantic import BaseModel, HttpUrl
-from sqlalchemy import func, select
+from sqlalchemy import desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sse_starlette.sse import EventSourceResponse
 
+from app.api.auth import require_user
 from app.api.auth import get_current_user
 from app.config import settings
 from app.core import cancellation, effective_settings
@@ -22,6 +25,11 @@ from app.core.throughput import estimate_wait_seconds
 from app.core.worker import enqueue_job
 from app.models.download import Download, DownloadStatus
 from app.models.user import User
+
+
+def _site_from_url(url: str) -> str:
+    hostname = urlparse(url).hostname or "inconnu"
+    return hostname[4:] if hostname.startswith("www.") else hostname
 
 router = APIRouter()
 
@@ -106,7 +114,13 @@ async def create_download(
         options["filename"] = sanitize_filename(options["filename"])
     options["max_file_size_gb"] = effective_settings.max_file_size_gb()
 
-    download = await enqueue(session, url=str(payload.url), options=options, user_id=user.id if user else None)
+    download = await enqueue(
+        session,
+        url=str(payload.url),
+        options=options,
+        user_id=user.id if user else None,
+        site=_site_from_url(str(payload.url)),
+    )
     if user is None:
         await record_guest_download(session, client_ip, guest_cookie)
     position = await queue_position(session, download)
@@ -184,3 +198,56 @@ async def download_events(job_id: int, session: AsyncSession = Depends(get_sessi
 
 def _sse(event: str, data: dict) -> dict:
     return {"event": event, "data": json.dumps(data)}
+
+
+class HistoryItem(BaseModel):
+    id: int
+    url: str
+    site: str | None = None
+    filename: str | None = None
+    size_bytes: int | None = None
+    status: str
+    error_message: str | None = None
+    created_at: datetime
+    options: dict
+
+
+class HistoryResponse(BaseModel):
+    items: list[HistoryItem]
+    total: int
+
+
+@router.get("/me/downloads", response_model=HistoryResponse)
+async def my_downloads(
+    page: int = 1,
+    page_size: int = 20,
+    user: User = Depends(require_user),
+    session: AsyncSession = Depends(get_session),
+) -> HistoryResponse:
+    """Historique paginé (UI §6.3) — « retélécharger » = POST /api/downloads avec `url`/`options`."""
+    page = max(page, 1)
+    page_size = min(max(page_size, 1), 100)
+
+    total = await session.scalar(select(func.count()).select_from(Download).where(Download.user_id == user.id))
+    result = await session.execute(
+        select(Download)
+        .where(Download.user_id == user.id)
+        .order_by(desc(Download.id))
+        .offset((page - 1) * page_size)
+        .limit(page_size)
+    )
+    items = [
+        HistoryItem(
+            id=d.id,
+            url=d.url,
+            site=d.site,
+            filename=d.filename,
+            size_bytes=d.size_bytes,
+            status=d.status,
+            error_message=d.error_message,
+            created_at=d.created_at,
+            options=d.options or {},
+        )
+        for d in result.scalars().all()
+    ]
+    return HistoryResponse(items=items, total=total or 0)
