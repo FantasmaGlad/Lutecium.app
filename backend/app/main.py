@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from app.api import admin, analyze, auth, downloads, files, health
+from app.core.bootstrap_admin import bootstrap_admin
 from app.core.cleanup import cleanup_loop
 from app.core.db import async_session_maker
 from app.core.events import bus
@@ -19,6 +20,7 @@ async def lifespan(app: FastAPI):
     # Le schéma est géré par Alembic (migration = source de vérité, P2-01) ; `init_db`/create_all
     # reste utilisé par les tests (base en mémoire, pas d'historique de migration nécessaire).
     await asyncio.to_thread(run_migrations)
+    await bootstrap_admin()  # A-01 : compte admin si ADMIN_PSEUDO/ADMIN_PASSWORD renseignés
     await refresh_cache()  # overrides admin (table settings, P2-08)
     bus.bind_loop(asyncio.get_running_loop())
     async with async_session_maker() as session:

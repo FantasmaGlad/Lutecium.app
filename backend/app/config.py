@@ -27,5 +27,11 @@ class Settings(BaseSettings):
     # Répertoire de stockage des fichiers temporaires (ignoré par git)
     downloads_dir: str = "./data/downloads"
 
+    # Bootstrap du compte admin (A-01) : si renseignés et qu'aucun admin n'existe encore,
+    # un compte admin est créé au démarrage. Normalement posés par le script d'installation
+    # interactif (P5-02) ; laissés vides par défaut (jamais d'identifiants par défaut).
+    admin_pseudo: str | None = None
+    admin_password: str | None = None
+
 
 settings = Settings()
