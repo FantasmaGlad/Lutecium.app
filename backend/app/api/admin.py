@@ -1,4 +1,5 @@
 import asyncio
+import json
 import secrets
 import string
 from datetime import date, datetime
@@ -7,6 +8,9 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy import delete, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
+from sse_starlette.sse import EventSourceResponse
+
+from app.core.db import async_session_maker
 
 from app.api.auth import require_user
 from app.core.auth import hash_password
@@ -224,8 +228,7 @@ class MetricsResponse(BaseModel):
     active_users_today: int
 
 
-@router.get("/admin/metrics", response_model=MetricsResponse)
-async def admin_metrics(admin: User = Depends(require_admin), db: AsyncSession = Depends(get_session)) -> MetricsResponse:
+async def _collect_metrics(db: AsyncSession) -> MetricsResponse:
     today = date.today().isoformat()
     per_day = await metrics.downloads_per_day(db)
     downloads_today = per_day[-1]["count"] if per_day else 0
@@ -246,6 +249,25 @@ async def admin_metrics(admin: User = Depends(require_admin), db: AsyncSession =
     )
 
 
+@router.get("/admin/metrics", response_model=MetricsResponse)
+async def admin_metrics(admin: User = Depends(require_admin), db: AsyncSession = Depends(get_session)) -> MetricsResponse:
+    return await _collect_metrics(db)
+
+
+@router.get("/admin/metrics/stream")
+async def admin_metrics_stream(admin: User = Depends(require_admin)) -> EventSourceResponse:
+    """A-11, UI §7.3 : rafraîchissement temps réel de la vue d'ensemble."""
+
+    async def generator():
+        while True:
+            async with async_session_maker() as db:
+                payload = await _collect_metrics(db)
+            yield {"event": "metrics", "data": payload.model_dump_json()}
+            await asyncio.sleep(5)
+
+    return EventSourceResponse(generator())
+
+
 # --- A-12 : état système ---
 
 
@@ -262,12 +284,29 @@ class SystemResponse(BaseModel):
     yt_dlp_version: str
 
 
-@router.get("/admin/system", response_model=SystemResponse)
-async def admin_system(admin: User = Depends(require_admin)) -> SystemResponse:
+async def _collect_system() -> SystemResponse:
     # psutil.cpu_percent(interval=...) bloque le thread appelant (§1.3 : yt-dlp/ffmpeg
     # suivent déjà ce principe via asyncio.to_thread pour ne jamais geler la boucle asyncio).
     snapshot = await asyncio.to_thread(system_snapshot)
     return SystemResponse(**snapshot, downloads_dir_usage_bytes=current_downloads_usage_bytes())
+
+
+@router.get("/admin/system", response_model=SystemResponse)
+async def admin_system(admin: User = Depends(require_admin)) -> SystemResponse:
+    return await _collect_system()
+
+
+@router.get("/admin/system/stream")
+async def admin_system_stream(admin: User = Depends(require_admin)) -> EventSourceResponse:
+    """A-12, UI §7.3 : rafraîchissement temps réel de l'état système."""
+
+    async def generator():
+        while True:
+            payload = await _collect_system()
+            yield {"event": "system", "data": payload.model_dump_json()}
+            await asyncio.sleep(3)
+
+    return EventSourceResponse(generator())
 
 
 # --- A-13 : journal ---
