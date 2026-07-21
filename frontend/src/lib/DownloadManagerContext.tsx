@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useRef, useState, type ReactNode } from 'react'
 import * as api from './api'
 import { subscribeDownloadEvents } from './downloadEvents'
+import { useToast } from './ToastContext'
 
 export type JobStatus = 'queued' | 'downloading' | 'processing' | 'done' | 'failed' | 'cancelled' | 'expired'
 
@@ -49,6 +50,7 @@ export function DownloadManagerProvider({
   const [order, setOrder] = useState<number[]>([])
   const [isOpen, setOpen] = useState(false)
   const unsubscribers = useRef<Record<number, () => void>>({})
+  const { showToast } = useToast()
 
   const patchJob = useCallback((id: number, patch: Partial<TrackedJob>) => {
     setJobsById((prev) => (prev[id] ? { ...prev, [id]: { ...prev[id], ...patch } } : prev))
@@ -133,9 +135,16 @@ export function DownloadManagerProvider({
     [patchJob, onJobDone],
   )
 
-  const cancelJob = useCallback(async (id: number) => {
-    await api.cancelDownload(id)
-  }, [])
+  const cancelJob = useCallback(
+    async (id: number) => {
+      try {
+        await api.cancelDownload(id)
+      } catch (err) {
+        showToast(err instanceof api.ApiError ? err.message : "Impossible d'annuler ce téléchargement.", 'error')
+      }
+    },
+    [showToast],
+  )
 
   const removeJob = useCallback((id: number) => {
     unsubscribers.current[id]?.()

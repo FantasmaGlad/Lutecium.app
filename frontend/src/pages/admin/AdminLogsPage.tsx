@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import * as adminApi from '../../lib/adminApi'
 import { formatBytes } from '../../lib/format'
+import { ErrorBanner } from './AdminWidgets'
 import './AdminLogsPage.css'
 
 const STATUSES = ['queued', 'downloading', 'processing', 'done', 'failed', 'cancelled', 'expired']
@@ -9,9 +10,16 @@ export function AdminLogsPage() {
   const [entries, setEntries] = useState<adminApi.JournalEntry[] | null>(null)
   const [statusFilter, setStatusFilter] = useState('')
   const [search, setSearch] = useState('')
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    adminApi.getJournal(statusFilter || undefined).then(setEntries)
+    adminApi
+      .getJournal(statusFilter || undefined)
+      .then((data) => {
+        setEntries(data)
+        setError(null)
+      })
+      .catch((err) => setError(err instanceof Error ? err.message : 'Une erreur est survenue.'))
   }, [statusFilter])
 
   const filtered = useMemo(() => {
@@ -42,7 +50,8 @@ export function AdminLogsPage() {
         />
       </div>
 
-      {!entries && <p className="admin-logs__loading">Chargement…</p>}
+      {error && <ErrorBanner message={error} />}
+      {!entries && !error && <p className="admin-logs__loading">Chargement…</p>}
 
       {entries && (
         <div className="admin-logs__table-wrap">

@@ -1,23 +1,33 @@
 import { useEffect, useState } from 'react'
 import * as adminApi from '../../lib/adminApi'
 import { formatBytes } from '../../lib/format'
+import { ErrorBanner } from './AdminWidgets'
 import './AdminUsersPage.css'
+
+function errorMessage(err: unknown): string {
+  return err instanceof Error ? err.message : 'Une erreur est survenue.'
+}
 
 export function AdminUsersPage() {
   const [users, setUsers] = useState<adminApi.AdminUser[] | null>(null)
   const [guests, setGuests] = useState<adminApi.GuestSummary[] | null>(null)
   const [tempPassword, setTempPassword] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
   function reload() {
-    adminApi.listUsers().then(setUsers)
-    adminApi.listGuests().then(setGuests)
+    adminApi.listUsers().then(setUsers).catch((err) => setError(errorMessage(err)))
+    adminApi.listGuests().then(setGuests).catch((err) => setError(errorMessage(err)))
   }
 
   useEffect(reload, [])
 
   async function toggleStatus(user: adminApi.AdminUser) {
-    await adminApi.updateUser(user.id, { status: user.status === 'active' ? 'suspended' : 'active' })
-    reload()
+    try {
+      await adminApi.updateUser(user.id, { status: user.status === 'active' ? 'suspended' : 'active' })
+      reload()
+    } catch (err) {
+      setError(errorMessage(err))
+    }
   }
 
   async function editQuota(user: adminApi.AdminUser) {
@@ -26,37 +36,52 @@ export function AdminUsersPage() {
       user.daily_quota_gb != null ? String(user.daily_quota_gb) : '',
     )
     if (input === null) return
-    if (input.trim() === '') {
-      await adminApi.updateUser(user.id, { daily_quota_gb: null })
+    try {
+      if (input.trim() === '') {
+        await adminApi.updateUser(user.id, { daily_quota_gb: null })
+        reload()
+        return
+      }
+      const value = Number(input)
+      if (!Number.isFinite(value) || value <= 0) {
+        window.alert('Quota invalide : indique un nombre de Go positif, ou laisse vide pour le défaut.')
+        return
+      }
+      await adminApi.updateUser(user.id, { daily_quota_gb: value })
       reload()
-      return
+    } catch (err) {
+      setError(errorMessage(err))
     }
-    const value = Number(input)
-    if (!Number.isFinite(value) || value <= 0) {
-      window.alert('Quota invalide : indique un nombre de Go positif, ou laisse vide pour le défaut.')
-      return
-    }
-    await adminApi.updateUser(user.id, { daily_quota_gb: value })
-    reload()
   }
 
   async function resetPassword(user: adminApi.AdminUser) {
     if (!window.confirm(`Réinitialiser le mot de passe de ${user.pseudo} ?`)) return
-    const res = await adminApi.resetUserPassword(user.id)
-    setTempPassword(res.temporary_password)
+    try {
+      const res = await adminApi.resetUserPassword(user.id)
+      setTempPassword(res.temporary_password)
+    } catch (err) {
+      setError(errorMessage(err))
+    }
   }
 
   async function removeUser(user: adminApi.AdminUser) {
     if (!window.confirm(`Supprimer définitivement le compte ${user.pseudo} ?`)) return
-    await adminApi.deleteUser(user.id)
-    reload()
+    try {
+      await adminApi.deleteUser(user.id)
+      reload()
+    } catch (err) {
+      setError(errorMessage(err))
+    }
   }
 
+  if (!users && error) return <ErrorBanner message={error} />
   if (!users) return <p className="admin-users__loading">Chargement…</p>
 
   return (
     <div className="admin-users">
       <h1 className="admin-users__title">Utilisateurs</h1>
+
+      {error && <ErrorBanner message={error} />}
 
       {tempPassword && (
         <p className="admin-users__temp-password">

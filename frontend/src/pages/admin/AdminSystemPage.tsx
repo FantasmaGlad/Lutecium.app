@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import * as adminApi from '../../lib/adminApi'
 import { formatBytes } from '../../lib/format'
-import { Gauge } from './AdminWidgets'
+import { ErrorBanner, Gauge } from './AdminWidgets'
 import './AdminSystemPage.css'
 
 const DISK_ALERT_THRESHOLD_PERCENT = 90
@@ -10,10 +10,17 @@ export function AdminSystemPage() {
   const [system, setSystem] = useState<adminApi.SystemSnapshot | null>(null)
   const [actionMessage, setActionMessage] = useState<string | null>(null)
   const [busy, setBusy] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    adminApi.getSystem().then(setSystem)
-    return adminApi.subscribeAdminStream<adminApi.SystemSnapshot>('system', setSystem)
+    adminApi
+      .getSystem()
+      .then(setSystem)
+      .catch((err) => setError(err instanceof Error ? err.message : 'Une erreur est survenue.'))
+    return adminApi.subscribeAdminStream<adminApi.SystemSnapshot>('system', (data) => {
+      setSystem(data)
+      setError(null)
+    })
   }, [])
 
   async function runAction(action: string, label: string) {
@@ -29,6 +36,7 @@ export function AdminSystemPage() {
     }
   }
 
+  if (!system && error) return <ErrorBanner message={error} />
   if (!system) return <p className="admin-system__loading">Chargement…</p>
 
   const ramPct = (system.ram_used_bytes / system.ram_total_bytes) * 100
@@ -38,6 +46,8 @@ export function AdminSystemPage() {
   return (
     <div className="admin-system">
       <h1 className="admin-system__title">Système</h1>
+
+      {error && <ErrorBanner message={error} />}
 
       {diskAlert && (
         <p className="admin-system__alert" role="alert">

@@ -1,22 +1,31 @@
 import { useEffect, useState } from 'react'
 import * as adminApi from '../../lib/adminApi'
 import { formatBytes } from '../../lib/format'
-import { BarChart, StatTile } from './AdminWidgets'
+import { BarChart, ErrorBanner, StatTile } from './AdminWidgets'
 import './AdminOverviewPage.css'
 
 export function AdminOverviewPage() {
   const [metrics, setMetrics] = useState<adminApi.MetricsSnapshot | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    adminApi.getMetrics().then(setMetrics)
-    return adminApi.subscribeAdminStream<adminApi.MetricsSnapshot>('metrics', setMetrics)
+    adminApi
+      .getMetrics()
+      .then(setMetrics)
+      .catch((err) => setError(err instanceof Error ? err.message : 'Une erreur est survenue.'))
+    return adminApi.subscribeAdminStream<adminApi.MetricsSnapshot>('metrics', (data) => {
+      setMetrics(data)
+      setError(null)
+    })
   }, [])
 
+  if (!metrics && error) return <ErrorBanner message={error} />
   if (!metrics) return <p className="admin-overview__loading">Chargement…</p>
 
   return (
     <div className="admin-overview">
       <h1 className="admin-overview__title">Vue d'ensemble</h1>
+      {error && <ErrorBanner message={error} />}
 
       <div className="admin-overview__tiles">
         <StatTile label="téléchargements aujourd'hui" value={String(metrics.downloads_today)} />

@@ -1,5 +1,13 @@
 import './AdminWidgets.css'
 
+export function ErrorBanner({ message }: { message: string }) {
+  return (
+    <p className="admin-error" role="alert">
+      {message}
+    </p>
+  )
+}
+
 export function StatTile({ label, value }: { label: string; value: string }) {
   return (
     <div className="admin-tile">

@@ -18,6 +18,7 @@ from app.core.diskspace import current_downloads_usage_bytes
 from app.core.quota import get_today_usage_bytes, quota_bytes_for
 from app.core.runtime_settings import get_all_settings, set_setting
 from app.core.system import system_snapshot
+from app.models.daily_usage import DailyUsage
 from app.models.download import Download
 from app.models.guest_download import GuestDownload
 from app.models.session import Session as SessionModel
@@ -126,25 +127,37 @@ class UpdateUserRequest(BaseModel):
 @router.get("/admin/users", response_model=list[UserSummary])
 async def list_users(admin: User = Depends(require_admin), db: AsyncSession = Depends(get_session)) -> list[UserSummary]:
     users = (await db.execute(select(User).order_by(User.created_at.desc()))).scalars().all()
-    summaries = []
-    for u in users:
-        last_seen = await db.scalar(select(func.max(SessionModel.created_at)).where(SessionModel.user_id == u.id))
-        total = await db.scalar(select(func.count()).select_from(Download).where(Download.user_id == u.id))
-        summaries.append(
-            UserSummary(
-                id=u.id,
-                pseudo=u.pseudo,
-                role=u.role,
-                status=u.status,
-                created_at=u.created_at,
-                last_seen_at=last_seen,
-                daily_quota_gb=u.daily_quota_gb,
-                effective_daily_quota_bytes=quota_bytes_for(u),
-                usage_today_bytes=await get_today_usage_bytes(db, u.id),
-                total_downloads=total or 0,
-            )
+
+    # Requêtes groupées plutôt qu'une boucle par utilisateur (N+1) — négligeable au volume
+    # d'un service auto-hébergé, mais autant l'éviter tant que c'est simple à faire.
+    last_seen_rows = await db.execute(
+        select(SessionModel.user_id, func.max(SessionModel.created_at)).group_by(SessionModel.user_id)
+    )
+    last_seen_by_user = dict(last_seen_rows.all())
+
+    totals_rows = await db.execute(
+        select(Download.user_id, func.count()).where(Download.user_id.is_not(None)).group_by(Download.user_id)
+    )
+    totals_by_user = dict(totals_rows.all())
+
+    usage_rows = await db.execute(select(DailyUsage.user_id, DailyUsage.bytes_used).where(DailyUsage.usage_date == date.today()))
+    usage_by_user = dict(usage_rows.all())
+
+    return [
+        UserSummary(
+            id=u.id,
+            pseudo=u.pseudo,
+            role=u.role,
+            status=u.status,
+            created_at=u.created_at,
+            last_seen_at=last_seen_by_user.get(u.id),
+            daily_quota_gb=u.daily_quota_gb,
+            effective_daily_quota_bytes=quota_bytes_for(u),
+            usage_today_bytes=usage_by_user.get(u.id, 0),
+            total_downloads=totals_by_user.get(u.id, 0),
         )
-    return summaries
+        for u in users
+    ]
 
 
 @router.patch("/admin/users/{user_id}", response_model=UserSummary)
@@ -228,15 +241,8 @@ class MetricsResponse(BaseModel):
 
 
 async def _collect_metrics(db: AsyncSession) -> MetricsResponse:
-    today = date.today().isoformat()
     per_day = await metrics.downloads_per_day(db)
     downloads_today = per_day[-1]["count"] if per_day else 0
-    active_users_today = await db.scalar(
-        select(func.count(func.distinct(Download.user_id))).where(
-            func.date(Download.created_at) == today,
-            Download.user_id.is_not(None),
-        )
-    )
     return MetricsResponse(
         downloads_per_day=per_day,
         top_sites=await metrics.top_sites(db),
@@ -244,7 +250,7 @@ async def _collect_metrics(db: AsyncSession) -> MetricsResponse:
         total_volume_bytes=await metrics.total_volume_bytes(db),
         queue=await metrics.queue_snapshot(db),
         downloads_today=downloads_today,
-        active_users_today=active_users_today or 0,
+        active_users_today=await metrics.active_users_today(db),
     )
 
 
