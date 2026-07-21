@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { MotionConfig } from 'framer-motion'
-import { Navigate, Route, Routes } from 'react-router-dom'
+import { Navigate, Outlet, Route, Routes } from 'react-router-dom'
 import { Header } from './components/Header'
 import { MainFlow } from './components/flow/MainFlow'
 import { DownloadManagerDrawer } from './components/DownloadManagerDrawer'
@@ -14,6 +14,11 @@ import { RegisterPage } from './pages/RegisterPage'
 import { ChangePasswordPage } from './pages/ChangePasswordPage'
 import { HistoryPage } from './pages/HistoryPage'
 import { AccountPage } from './pages/AccountPage'
+import { AdminLayout } from './pages/admin/AdminLayout'
+import { AdminOverviewPage } from './pages/admin/AdminOverviewPage'
+import { AdminUsersPage } from './pages/admin/AdminUsersPage'
+import { AdminSystemPage } from './pages/admin/AdminSystemPage'
+import { AdminLogsPage } from './pages/admin/AdminLogsPage'
 import './App.css'
 
 function RequireAuth({ children }: { children: ReactNode }) {
@@ -30,50 +35,58 @@ function ForcedPasswordGate({ children }: { children: ReactNode }) {
   return <>{children}</>
 }
 
-function AppRoutes() {
-  return (
-    <Routes>
-      <Route
-        path="/"
-        element={
-          <ForcedPasswordGate>
-            <main className="main">
-              <MainFlow />
-            </main>
-          </ForcedPasswordGate>
-        }
-      />
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/register" element={<RegisterPage />} />
-      <Route path="/changer-mot-de-passe" element={<ChangePasswordPage forced />} />
-      <Route
-        path="/historique"
-        element={
-          <RequireAuth>
-            <HistoryPage />
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="/compte"
-        element={
-          <RequireAuth>
-            <AccountPage />
-          </RequireAuth>
-        }
-      />
-    </Routes>
-  )
-}
-
-function AppShell() {
+function PublicLayout() {
   return (
     <DownloadManagerProvider onJobDone={(job) => notifyDownloadReady(job.title)}>
       <Header />
-      <AppRoutes />
+      <Outlet />
       <DownloadManagerDrawer />
       <Toasts />
     </DownloadManagerProvider>
+  )
+}
+
+function AppRoutes() {
+  return (
+    <Routes>
+      <Route element={<PublicLayout />}>
+        <Route
+          path="/"
+          element={
+            <ForcedPasswordGate>
+              <main className="main">
+                <MainFlow />
+              </main>
+            </ForcedPasswordGate>
+          }
+        />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/changer-mot-de-passe" element={<ChangePasswordPage forced />} />
+        <Route
+          path="/historique"
+          element={
+            <RequireAuth>
+              <HistoryPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/compte"
+          element={
+            <RequireAuth>
+              <AccountPage />
+            </RequireAuth>
+          }
+        />
+      </Route>
+      <Route path="/admin" element={<AdminLayout />}>
+        <Route index element={<AdminOverviewPage />} />
+        <Route path="users" element={<AdminUsersPage />} />
+        <Route path="system" element={<AdminSystemPage />} />
+        <Route path="logs" element={<AdminLogsPage />} />
+      </Route>
+    </Routes>
   )
 }
 
@@ -82,7 +95,7 @@ function App() {
     <MotionConfig reducedMotion="user">
       <AuthProvider>
         <ToastProvider>
-          <AppShell />
+          <AppRoutes />
         </ToastProvider>
       </AuthProvider>
     </MotionConfig>
