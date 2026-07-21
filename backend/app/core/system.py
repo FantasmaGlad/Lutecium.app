@@ -35,8 +35,19 @@ def _cpu_frequency_mhz() -> float | None:
         return None
 
 
+def _existing_ancestor(path: Path) -> Path:
+    for candidate in (path, *path.parents):
+        if candidate.exists():
+            return candidate
+    return Path("/")
+
+
 def system_snapshot() -> dict:
-    disk = psutil.disk_usage(str(Path(settings.downloads_dir).resolve().anchor or "/"))
+    # psutil.disk_usage accepte n'importe quel chemin du point de montage visé : passer
+    # `.anchor` (toujours `/` sous Linux, cf. Path.anchor) mesurerait systématiquement le
+    # disque racine au lieu du volume réel des téléchargements s'il était monté à part.
+    # `downloads_dir` peut ne pas encore exister (créé au 1er job, cf. core/worker.py).
+    disk = psutil.disk_usage(str(_existing_ancestor(Path(settings.downloads_dir).resolve())))
     mem = psutil.virtual_memory()
     return {
         "cpu_percent": psutil.cpu_percent(interval=0.1),

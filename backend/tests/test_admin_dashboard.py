@@ -72,6 +72,24 @@ async def test_admin_can_suspend_and_quota_override(admin_client):
 
 
 @pytest.mark.asyncio
+async def test_admin_quota_override_rejects_non_positive_values(admin_client):
+    await admin_client.post("/api/auth/logout")
+    reg = await admin_client.post("/api/auth/register", json={"pseudo": "dave", "password": "motdepasse123"})
+    dave_id = reg.json()["id"]
+    await admin_client.post("/api/auth/logout")
+    await admin_client.post("/api/auth/login", json={"pseudo": "admin", "password": "adminpass123"})
+
+    for bad_value in (0, -5):
+        response = await admin_client.patch(f"/api/admin/users/{dave_id}", json={"daily_quota_gb": bad_value})
+        assert response.status_code == 422
+
+    # None reste un moyen valide de revenir au défaut du service.
+    response = await admin_client.patch(f"/api/admin/users/{dave_id}", json={"daily_quota_gb": None})
+    assert response.status_code == 200
+    assert response.json()["daily_quota_gb"] is None
+
+
+@pytest.mark.asyncio
 async def test_admin_can_delete_user(admin_client):
     await admin_client.post("/api/auth/logout")
     reg = await admin_client.post("/api/auth/register", json={"pseudo": "carol", "password": "motdepasse123"})

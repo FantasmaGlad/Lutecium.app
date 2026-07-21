@@ -26,7 +26,16 @@ export function AdminUsersPage() {
       user.daily_quota_gb != null ? String(user.daily_quota_gb) : '',
     )
     if (input === null) return
-    const value = input.trim() === '' ? null : Number(input)
+    if (input.trim() === '') {
+      await adminApi.updateUser(user.id, { daily_quota_gb: null })
+      reload()
+      return
+    }
+    const value = Number(input)
+    if (!Number.isFinite(value) || value <= 0) {
+      window.alert('Quota invalide : indique un nombre de Go positif, ou laisse vide pour le défaut.')
+      return
+    }
     await adminApi.updateUser(user.id, { daily_quota_gb: value })
     reload()
   }

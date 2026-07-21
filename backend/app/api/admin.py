@@ -1,11 +1,10 @@
 import asyncio
-import json
 import secrets
 import string
 from datetime import date, datetime
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from sqlalchemy import delete, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sse_starlette.sse import EventSourceResponse
@@ -121,7 +120,7 @@ class UserSummary(BaseModel):
 
 class UpdateUserRequest(BaseModel):
     status: str | None = None
-    daily_quota_gb: float | None = None
+    daily_quota_gb: float | None = Field(default=None, gt=0)
 
 
 @router.get("/admin/users", response_model=list[UserSummary])
