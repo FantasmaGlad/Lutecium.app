@@ -384,6 +384,8 @@ async def run_action(
             version = await update_yt_dlp()
         except UpdateInProgressError as exc:
             raise HTTPException(status_code=409, detail=str(exc)) from exc
-        return ActionResponse(ok=True, message=f"yt-dlp mis à jour ({version}).")
+        return ActionResponse(
+            ok=True, message=f"yt-dlp mis à jour ({version}). Redémarrage du service dans quelques secondes."
+        )
 
     raise HTTPException(status_code=404, detail="Action inconnue.")
