@@ -83,6 +83,7 @@ export interface SystemSnapshot {
   downloads_dir_usage_bytes: number
   uptime_seconds: number
   yt_dlp_version: string
+  yt_dlp_last_update_at: string | null
 }
 
 export function getSystem(): Promise<SystemSnapshot> {

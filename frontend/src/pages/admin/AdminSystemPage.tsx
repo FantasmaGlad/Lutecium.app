@@ -5,6 +5,8 @@ import { ErrorBanner, Gauge } from './AdminWidgets'
 import './AdminSystemPage.css'
 
 const DISK_ALERT_THRESHOLD_PERCENT = 90
+// M-01 vise une maj nightly (24h) ; marge de sécurité avant d'afficher une alerte de fraîcheur.
+const YTDLP_STALE_THRESHOLD_HOURS = 36
 
 export function AdminSystemPage() {
   const [system, setSystem] = useState<adminApi.SystemSnapshot | null>(null)
@@ -42,6 +44,11 @@ export function AdminSystemPage() {
   const ramPct = (system.ram_used_bytes / system.ram_total_bytes) * 100
   const diskPct = (system.disk_used_bytes / system.disk_total_bytes) * 100
   const diskAlert = diskPct >= DISK_ALERT_THRESHOLD_PERCENT
+
+  const lastUpdateHoursAgo = system.yt_dlp_last_update_at
+    ? (Date.now() - new Date(system.yt_dlp_last_update_at).getTime()) / 3_600_000
+    : null
+  const ytdlpStale = lastUpdateHoursAgo == null || lastUpdateHoursAgo > YTDLP_STALE_THRESHOLD_HOURS
 
   return (
     <div className="admin-system">
@@ -93,6 +100,15 @@ export function AdminSystemPage() {
         <li>
           <span>Version yt-dlp</span>
           <span>{system.yt_dlp_version}</span>
+        </li>
+        <li className={ytdlpStale ? 'admin-system__fact--stale' : undefined}>
+          <span>Dernière maj yt-dlp</span>
+          <span>
+            {system.yt_dlp_last_update_at
+              ? new Date(system.yt_dlp_last_update_at).toLocaleString('fr-FR')
+              : 'jamais (image de build uniquement)'}
+            {ytdlpStale && ' · à vérifier'}
+          </span>
         </li>
       </ul>
 

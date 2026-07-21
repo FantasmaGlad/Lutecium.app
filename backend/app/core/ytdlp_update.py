@@ -12,10 +12,12 @@ import asyncio
 import logging
 import os
 import signal
+from datetime import datetime, timezone
 
 from sqlalchemy import func, select
 
 from app.core.db import async_session_maker
+from app.core.runtime_settings import set_setting
 from app.models.download import Download, DownloadStatus
 
 log = logging.getLogger(__name__)
@@ -49,6 +51,11 @@ async def update_yt_dlp() -> str:
         raise RuntimeError("La mise à jour de yt-dlp a échoué : " + output[0].decode(errors="replace")[-500:])
 
     version = await asyncio.to_thread(_installed_version)
+
+    async with async_session_maker() as session:
+        await set_setting(session, "yt_dlp_last_update_at", datetime.now(timezone.utc).isoformat())
+        await set_setting(session, "yt_dlp_last_update_version", version)
+
     asyncio.get_running_loop().call_later(_RESTART_DELAY_SECONDS, _restart_process)
     return version
 

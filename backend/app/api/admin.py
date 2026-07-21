@@ -287,6 +287,7 @@ class SystemResponse(BaseModel):
     downloads_dir_usage_bytes: int
     uptime_seconds: float
     yt_dlp_version: str
+    yt_dlp_last_update_at: str | None
 
 
 async def _collect_system() -> SystemResponse:

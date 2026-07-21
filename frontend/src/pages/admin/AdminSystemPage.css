@@ -62,6 +62,10 @@
   color: var(--color-text-secondary);
 }
 
+.admin-system__fact--stale span:last-child {
+  color: var(--color-error);
+}
+
 .admin-system__actions {
   display: flex;
   flex-wrap: wrap;

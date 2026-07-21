@@ -8,6 +8,7 @@ from pathlib import Path
 import psutil
 
 from app.config import settings
+from app.core.runtime_settings import get_override
 
 _START_TIME = time.monotonic()
 
@@ -59,6 +60,7 @@ def system_snapshot() -> dict:
         "disk_total_bytes": disk.total,
         "uptime_seconds": time.monotonic() - _START_TIME,
         "yt_dlp_version": _yt_dlp_version(),
+        "yt_dlp_last_update_at": get_override("yt_dlp_last_update_at"),
     }
 
 
