@@ -1,0 +1,39 @@
+.guest-invite {
+  width: 100%;
+  max-width: 480px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  text-align: center;
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+}
+
+.guest-invite__message {
+  margin: 0;
+  font-family: var(--font-sans);
+  color: var(--color-text);
+}
+
+.guest-invite__actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.guest-invite__button {
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-surface-alt);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+
+.guest-invite__button--primary {
+  background: var(--color-accent);
+  color: var(--color-bg);
+  border-color: var(--color-accent);
+}

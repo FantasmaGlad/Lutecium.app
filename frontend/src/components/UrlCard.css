@@ -66,3 +66,46 @@
   color: var(--color-text-secondary);
   text-align: center;
 }
+
+.url-card__input-row--analyzing {
+  border-color: var(--color-text-secondary);
+}
+
+.url-card__status {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+}
+
+.url-card__dots {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: bottom;
+  width: 0;
+  animation: url-card-dots 1.2s steps(4, end) infinite;
+}
+
+.url-card__dots::before {
+  content: '...';
+}
+
+@keyframes url-card-dots {
+  to {
+    width: 1.5em;
+  }
+}
+
+.url-card__error {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--color-error);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .url-card__dots {
+    animation: none;
+    width: 1.5em;
+  }
+}

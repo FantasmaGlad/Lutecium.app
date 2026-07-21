@@ -1,0 +1,89 @@
+.account-page {
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-3);
+}
+
+.account-page__title {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 1.1rem;
+  color: var(--color-text);
+}
+
+.account-page__pseudo {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 1.2rem;
+  color: var(--color-text);
+}
+
+.account-page__quota {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.account-page__quota-track {
+  height: 8px;
+  background: var(--color-surface);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.account-page__quota-fill {
+  height: 100%;
+  background: var(--color-accent);
+  border-radius: var(--radius-sm);
+}
+
+.account-page__quota-fill[data-over] {
+  background: var(--color-success);
+}
+
+.account-page__quota-label {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.9rem;
+  color: var(--color-text);
+}
+
+.account-page__gift-message {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  color: var(--color-success);
+}
+
+.account-page__actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-surface-alt);
+}
+
+.account-page__link {
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+}
+
+.account-page__logout {
+  align-self: flex-start;
+  background: none;
+  border: none;
+  color: var(--color-text-secondary);
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  cursor: pointer;
+  padding: 0;
+}
+
+.account-page__logout:hover {
+  color: var(--color-text);
+}

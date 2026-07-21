@@ -1,0 +1,68 @@
+.account-menu {
+  position: relative;
+}
+
+.account-menu__panel {
+  position: absolute;
+  top: calc(100% + var(--space-2));
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 200px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-surface-alt);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  z-index: 30;
+}
+
+.account-menu__panel a,
+.account-menu__panel button {
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  color: var(--color-text);
+  text-decoration: none;
+  background: none;
+  border: none;
+  text-align: left;
+  padding: var(--space-1) 0;
+  cursor: pointer;
+}
+
+.account-menu__panel a:hover,
+.account-menu__panel button:hover {
+  color: var(--color-text-secondary);
+}
+
+.account-menu__quota {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--color-surface-alt);
+  margin-bottom: var(--space-1);
+}
+
+.account-menu__quota-track {
+  height: 4px;
+  background: var(--color-surface-alt);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.account-menu__quota-fill {
+  height: 100%;
+  background: var(--color-accent);
+}
+
+.account-menu__quota-fill[data-over] {
+  background: var(--color-success);
+}
+
+.account-menu__quota-label {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+}

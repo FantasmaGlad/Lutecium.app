@@ -1,0 +1,70 @@
+.done-card {
+  width: 100%;
+  max-width: 480px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  text-align: center;
+}
+
+.done-card__check {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1px solid var(--color-success);
+  color: var(--color-success);
+  font-size: 1.2rem;
+}
+
+.done-card__save {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--color-accent);
+  color: var(--color-bg);
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  text-decoration: none;
+}
+
+.done-card__meta {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+}
+
+.done-card__countdown {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+}
+
+.done-card__expired {
+  margin: 0;
+  font-family: var(--font-mono);
+  color: var(--color-error);
+}
+
+.done-card__restart {
+  background: none;
+  border: none;
+  color: var(--color-text-secondary);
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.done-card__restart:hover {
+  color: var(--color-text);
+}
