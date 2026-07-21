@@ -13,8 +13,8 @@
 }
 
 .header__burger {
-  width: 32px;
-  height: 32px;
+  width: 44px;
+  height: 44px;
   display: inline-flex;
   flex-direction: column;
   align-items: center;
@@ -39,6 +39,9 @@
 }
 
 .header__account {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   background: transparent;
   border: 1px solid var(--color-surface-alt);
   border-radius: var(--radius-sm);
@@ -47,6 +50,7 @@
   font-size: 0.85rem;
   padding: var(--space-1) var(--space-3);
   cursor: pointer;
+  text-decoration: none;
 }
 
 .header__account:hover {

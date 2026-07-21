@@ -7,6 +7,7 @@ import { useToast } from '../../lib/ToastContext'
 import { requestNotificationPermissionOnce } from '../../lib/notifications'
 import { hasUsedGuestDownload, markGuestDownloadUsed } from '../../lib/guestState'
 import { setPendingUrl, takePendingUrl } from '../../lib/pendingUrl'
+import { takeSharedUrl } from '../../lib/pwa'
 import { UrlCard } from '../UrlCard'
 import { PreviewCard, type DownloadChoice } from './PreviewCard'
 import { ProgressCard } from './ProgressCard'
@@ -32,8 +33,10 @@ export function MainFlow() {
   const [justFinishedGuest, setJustFinishedGuest] = useState(false)
 
   useEffect(() => {
+    const shared = takeSharedUrl()
     const pending = takePendingUrl()
-    if (pending) setInitialUrl(pending)
+    const url = shared ?? pending
+    if (url) setInitialUrl(url)
   }, [])
 
   const job = jobId != null ? manager.jobs.find((j) => j.id === jobId) : undefined

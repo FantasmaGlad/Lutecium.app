@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { motion } from 'framer-motion'
 import type { TrackedJob } from '../../lib/DownloadManagerContext'
 import { formatBytes } from '../../lib/format'
@@ -9,7 +9,7 @@ const FILE_TTL_SECONDS = 5 * 60
 interface DoneCardProps {
   job: TrackedJob
   onRestart: () => void
-  guestInvite?: React.ReactNode
+  guestInvite?: ReactNode
 }
 
 export function DoneCard({ job, onRestart, guestInvite }: DoneCardProps) {
@@ -40,8 +40,15 @@ export function DoneCard({ job, onRestart, guestInvite }: DoneCardProps) {
       <div className="done-card__check" aria-hidden="true">
         ✓
       </div>
+      {/* Annoncé une seule fois aux lecteurs d'écran ; le compte à rebours ci-dessous ne l'est pas
+          (aria-live sur une valeur qui change chaque seconde serait bruyant, cf. UI §11). */}
+      <p className="done-card__sr-status" role="status">
+        {expired ? 'Ce fichier n’est plus disponible.' : 'Ton fichier est prêt.'}
+      </p>
       {expired ? (
-        <p className="done-card__expired">Ce fichier n'est plus disponible.</p>
+        <p className="done-card__expired" aria-hidden="true">
+          Ce fichier n'est plus disponible.
+        </p>
       ) : (
         <>
           <a className="done-card__save" href={job.fileUrl} download={job.filename}>

@@ -5,8 +5,10 @@ import './styles/tokens.css'
 import './index.css'
 import App from './App.tsx'
 import { initTheme } from './lib/theme'
+import { registerServiceWorker } from './lib/pwa'
 
 initTheme()
+registerServiceWorker()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

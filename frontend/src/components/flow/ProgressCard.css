@@ -62,13 +62,14 @@
 }
 
 .progress-card__cancel {
+  min-height: 44px;
+  padding: var(--space-1) var(--space-2);
   background: none;
   border: none;
   color: var(--color-text-secondary);
   font-family: var(--font-sans);
   font-size: 0.85rem;
   cursor: pointer;
-  padding: var(--space-1) var(--space-2);
 }
 
 .progress-card__cancel:hover {

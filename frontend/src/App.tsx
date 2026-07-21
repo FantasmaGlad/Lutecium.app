@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { MotionConfig } from 'framer-motion'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { Header } from './components/Header'
 import { MainFlow } from './components/flow/MainFlow'
@@ -78,11 +79,13 @@ function AppShell() {
 
 function App() {
   return (
-    <AuthProvider>
-      <ToastProvider>
-        <AppShell />
-      </ToastProvider>
-    </AuthProvider>
+    <MotionConfig reducedMotion="user">
+      <AuthProvider>
+        <ToastProvider>
+          <AppShell />
+        </ToastProvider>
+      </AuthProvider>
+    </MotionConfig>
   )
 }
 

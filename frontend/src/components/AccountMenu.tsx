@@ -38,11 +38,17 @@ export function AccountMenu() {
 
   return (
     <div className="account-menu" ref={ref}>
-      <button type="button" className="header__account" onClick={() => setOpen((v) => !v)} aria-expanded={open}>
+      <button
+        type="button"
+        className="header__account"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        aria-controls="account-menu-panel"
+      >
         {user.pseudo}
       </button>
       {open && (
-        <div className="account-menu__panel" role="menu">
+        <div className="account-menu__panel" id="account-menu-panel">
           <div className="account-menu__quota">
             <div className="account-menu__quota-track">
               <div
