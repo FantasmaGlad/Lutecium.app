@@ -14,7 +14,7 @@
 | 2 | Comptes et quotas | 9/9 ✅ | Invité : 1 téléchargement puis invitation ; quotas appliqués |
 | D | Design (Claude Design) | 0/5 | Livrables CDC UI §12 validés |
 | 3 | Frontend React | 13/14 | Parcours complet clavier/mobile en français |
-| 4 | Salle de contrôle (admin) | 0/7 | Suspension + purge disque en ≤ 3 clics |
+| 4 | Salle de contrôle (admin) | 5/7 | Suspension + purge disque en ≤ 3 clics |
 | 0 | Socle serveur (Wyse) | 4/4 ✅ | HTTPS répond depuis l'extérieur |
 | 5 | Industrialisation | 0/8 | Réinstallation de zéro < 30 min |
 
@@ -98,11 +98,11 @@ Spécification : [CDC UI/UX](docs/ui-ux-cahier-des-charges.md). Mobile-first, de
 
 | ID | Tâche | Exigences | Statut | Session | Notes |
 |---|---|---|---|---|---|
-| P4-01 | API gestion utilisateurs (liste, suspension, suppression, quota, reset mdp) + vue invités | A-10 | ⬜ | | |
-| P4-02 | API métriques d'usage (jour/semaine, volume, top sites, taux d'erreur, file) | A-11 | ⬜ | | |
-| P4-03 | API état système (CPU, fréquence, RAM, température, disque) + alerte disque | A-12 | ⬜ | | Monter /sys ro dans le conteneur |
-| P4-04 | Journal téléchargements + erreurs, rotation | A-13, M-02 | ⬜ | | |
-| P4-05 | Actions rapides : purge downloads, vidage file, maj yt-dlp | A-14 | ⬜ | | |
+| P4-01 | API gestion utilisateurs (liste, suspension, suppression, quota, reset mdp) + vue invités | A-10 | ✅ | S2 (2026-07-21) | GET/PATCH/DELETE `/api/admin/users`, GET `/api/admin/guests` (IP déjà anonymisée en hash salé quotidien, aucun changement nécessaire). Suppression : sessions supprimées, téléchargements détachés (`user_id=NULL`, conservés pour les métriques globales) plutôt que supprimés. Reset mdp déjà fait en P2-07. Testé en réel (suspension → connexion refusée 403, quota individuel appliqué, suppression confirmée) + 6 tests pytest |
+| P4-02 | API métriques d'usage (jour/semaine, volume, top sites, taux d'erreur, file) | A-11 | ✅ | S2 (2026-07-21) | GET `/api/admin/metrics` : `app/services/metrics.py` (agrégations SQL). Testé en réel avec de vrais téléchargements |
+| P4-03 | API état système (CPU, fréquence, RAM, température, disque) + alerte disque | A-12 | ✅ | S2 (2026-07-21) | GET `/api/admin/system` : `app/core/system.py` (psutil, exécuté via `asyncio.to_thread` — `cpu_percent(interval=…)` bloque sinon la boucle asyncio). Température lue depuis `/sys/class/thermal` ou `/sys/class/hwmon` (montés ro dans `deploy/docker-compose.yml`, `None` si indisponible en dev). Pas d'accès au socket Docker (décision PLAN §1.2-5) : heartbeat applicatif (uptime du process) à la place de l'état par conteneur. Testé en réel : température/CPU/RAM/disque réels de la machine de dev renvoyés |
+| P4-04 | Journal téléchargements + erreurs, rotation | A-13, M-02 | ✅ | S2 (2026-07-21) | GET `/api/admin/journal` (paginé, filtrable par statut) sur la table `downloads` existante. M-02 : `app/core/logging_config.py`, `RotatingFileHandler` (5 Mo × 5 fichiers) sur les logs applicatifs, activé une fois par processus. Testé en réel |
+| P4-05 | Actions rapides : purge downloads, vidage file, maj yt-dlp | A-14 | ✅ | S2 (2026-07-21) | `purge_all_download_files` (ne touche jamais un job actif), `clear_queue` (annule file d'attente + jobs en cours via le même mécanisme coopératif que l'annulation individuelle), `update_yt_dlp` (`pip install --upgrade`, refusé avec 409 si des jobs actifs). **Déviation** : le « rechargement propre des workers » de PLAN.md n'est qu'un rechargement de la chaîne de version (`importlib.reload`) — une mise à jour complète des extracteurs yt-dlp nécessite un redémarrage du conteneur (cohérent avec le cron nightly M-01 qui rebuild l'image). Testé en réel (les 3 actions, y compris un vrai `pip install --upgrade yt-dlp`) |
 | P4-06 | UI dashboard : 4 sections (Vue, Users, Sys, Logs), style mission control monochrome, SSE temps réel | A-10..14, UI §7 | ⬜ | | |
 | P4-07 | Critère de phase : suspension + purge en ≤ 3 clics | §12 | ⬜ | | |
 
@@ -147,6 +147,7 @@ Spécification : [CDC UI/UX](docs/ui-ux-cahier-des-charges.md). Mobile-first, de
 
 | 2026-07-20 | Détour UI/UX | Interruption volontaire de l'ordre des phases (Phase 1 backend en cours) pour amorcer la Phase 3/D à la demande de l'utilisateur (« voir le site prendre forme »). Choix de wordmark et palette faits directement dans le code (option 1 du CDC UI §2.1, palette §2.2 telle quelle) plutôt que via une session Claude Design formelle — statut 🧪 (à revalider en Phase D). Reprise du backend (P1-02) ensuite | Demande utilisateur |
 | 2026-07-21 | Migration Alembic vs `downloads` legacy | La base SQLite de prod contenait déjà la table `downloads` (créée par `create_all` en Phase 1, avant Alembic). La migration initiale P2-01 tente de la recréer → conflit → conteneur en boucle de redémarrage au premier déploiement de la Phase 2. Corrigé en mettant de côté l'ancienne base (`lutecium.db.pre-phase2.bak` dans le volume `deploy_lutecium_data`, une seule ligne de test éphémère perdue, aucune donnée réelle) et en laissant Alembic construire un schéma propre. Pas de correctif nécessaire dans le script de migration lui-même : une installation neuve (P5-01) part toujours d'une base vide | Constat en session S2 |
+| 2026-07-21 | Pas de compte admin existant | Aucun mécanisme de création d'un compte admin n'existe encore (prévu en P5-02, « configuration interactive → .env + création du compte admin »). Développement/test de la Phase 4 fait en promouvant manuellement un utilisateur de test en `role=admin` par SQL direct sur la base de dev locale — **jamais fait en production**, technique de test uniquement. P5-02 reste nécessaire avant toute mise en production réelle de la Phase 4 | Constat en session S2 |
 
 **En attente :** P3-14 (déploiement du nouveau frontend sur le Wyse) — Wyse déconnecté depuis le milieu de la session S2 (confirmé par l'utilisateur), build de production prêt localement (`frontend/dist`, `npm run build` propre) mais pas encore synchronisé. À reprendre dès que le serveur est de nouveau joignable.
 

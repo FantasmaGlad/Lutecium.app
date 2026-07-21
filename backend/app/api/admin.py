@@ -1,15 +1,25 @@
+import asyncio
 import secrets
 import string
+from datetime import date, datetime
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
+from sqlalchemy import delete, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.auth import require_user
 from app.core.auth import hash_password
 from app.core.db import get_session
+from app.core.diskspace import current_downloads_usage_bytes
+from app.core.quota import get_today_usage_bytes, quota_bytes_for
 from app.core.runtime_settings import get_all_settings, set_setting
-from app.models.user import User, UserRole
+from app.core.system import system_snapshot
+from app.models.download import Download
+from app.models.guest_download import GuestDownload
+from app.models.session import Session as SessionModel
+from app.models.user import User, UserRole, UserStatus
+from app.services import metrics
 
 router = APIRouter()
 
@@ -87,3 +97,254 @@ async def update_settings(
     for key, value in payload.settings.items():
         await set_setting(db, key, value)
     return SettingsResponse(settings=await get_all_settings(db))
+
+
+# --- A-10 : gestion utilisateurs ---
+
+
+class UserSummary(BaseModel):
+    id: int
+    pseudo: str
+    role: str
+    status: str
+    created_at: datetime
+    last_seen_at: datetime | None
+    daily_quota_gb: float | None
+    effective_daily_quota_bytes: float
+    usage_today_bytes: int
+    total_downloads: int
+
+
+class UpdateUserRequest(BaseModel):
+    status: str | None = None
+    daily_quota_gb: float | None = None
+
+
+@router.get("/admin/users", response_model=list[UserSummary])
+async def list_users(admin: User = Depends(require_admin), db: AsyncSession = Depends(get_session)) -> list[UserSummary]:
+    users = (await db.execute(select(User).order_by(User.created_at.desc()))).scalars().all()
+    summaries = []
+    for u in users:
+        last_seen = await db.scalar(select(func.max(SessionModel.created_at)).where(SessionModel.user_id == u.id))
+        total = await db.scalar(select(func.count()).select_from(Download).where(Download.user_id == u.id))
+        summaries.append(
+            UserSummary(
+                id=u.id,
+                pseudo=u.pseudo,
+                role=u.role,
+                status=u.status,
+                created_at=u.created_at,
+                last_seen_at=last_seen,
+                daily_quota_gb=u.daily_quota_gb,
+                effective_daily_quota_bytes=quota_bytes_for(u),
+                usage_today_bytes=await get_today_usage_bytes(db, u.id),
+                total_downloads=total or 0,
+            )
+        )
+    return summaries
+
+
+@router.patch("/admin/users/{user_id}", response_model=UserSummary)
+async def update_user(
+    user_id: int,
+    payload: UpdateUserRequest,
+    admin: User = Depends(require_admin),
+    db: AsyncSession = Depends(get_session),
+) -> UserSummary:
+    user = await db.get(User, user_id)
+    if user is None:
+        raise HTTPException(status_code=404, detail="Utilisateur introuvable.")
+
+    if payload.status is not None:
+        if payload.status not in (UserStatus.ACTIVE, UserStatus.SUSPENDED):
+            raise HTTPException(status_code=422, detail="Statut invalide.")
+        user.status = payload.status
+    if "daily_quota_gb" in payload.model_fields_set:
+        user.daily_quota_gb = payload.daily_quota_gb
+    await db.commit()
+
+    last_seen = await db.scalar(select(func.max(SessionModel.created_at)).where(SessionModel.user_id == user.id))
+    total = await db.scalar(select(func.count()).select_from(Download).where(Download.user_id == user.id))
+    return UserSummary(
+        id=user.id,
+        pseudo=user.pseudo,
+        role=user.role,
+        status=user.status,
+        created_at=user.created_at,
+        last_seen_at=last_seen,
+        daily_quota_gb=user.daily_quota_gb,
+        effective_daily_quota_bytes=quota_bytes_for(user),
+        usage_today_bytes=await get_today_usage_bytes(db, user.id),
+        total_downloads=total or 0,
+    )
+
+
+@router.delete("/admin/users/{user_id}")
+async def delete_user(
+    user_id: int, admin: User = Depends(require_admin), db: AsyncSession = Depends(get_session)
+) -> dict:
+    user = await db.get(User, user_id)
+    if user is None:
+        raise HTTPException(status_code=404, detail="Utilisateur introuvable.")
+
+    await db.execute(delete(SessionModel).where(SessionModel.user_id == user_id))
+    # Historique de téléchargements détaché plutôt que supprimé (métriques globales, A-11).
+    await db.execute(update(Download).where(Download.user_id == user_id).values(user_id=None))
+    await db.delete(user)
+    await db.commit()
+    return {"ok": True}
+
+
+class GuestSummary(BaseModel):
+    ip_hash: str
+    guest_cookie: str
+    count: int
+    created_at: datetime
+
+
+@router.get("/admin/guests", response_model=list[GuestSummary])
+async def list_guests(admin: User = Depends(require_admin), db: AsyncSession = Depends(get_session)) -> list[GuestSummary]:
+    result = await db.execute(select(GuestDownload).order_by(GuestDownload.created_at.desc()).limit(200))
+    return [
+        GuestSummary(ip_hash=g.ip_hash, guest_cookie=g.guest_cookie, count=g.count, created_at=g.created_at)
+        for g in result.scalars().all()
+    ]
+
+
+# --- A-11 : métriques d'usage ---
+
+
+class MetricsResponse(BaseModel):
+    downloads_per_day: list[dict]
+    top_sites: list[dict]
+    error_rate: float
+    total_volume_bytes: int
+    queue: list[dict]
+    downloads_today: int
+    active_users_today: int
+
+
+@router.get("/admin/metrics", response_model=MetricsResponse)
+async def admin_metrics(admin: User = Depends(require_admin), db: AsyncSession = Depends(get_session)) -> MetricsResponse:
+    today = date.today().isoformat()
+    per_day = await metrics.downloads_per_day(db)
+    downloads_today = per_day[-1]["count"] if per_day else 0
+    active_users_today = await db.scalar(
+        select(func.count(func.distinct(Download.user_id))).where(
+            func.date(Download.created_at) == today,
+            Download.user_id.is_not(None),
+        )
+    )
+    return MetricsResponse(
+        downloads_per_day=per_day,
+        top_sites=await metrics.top_sites(db),
+        error_rate=await metrics.error_rate(db),
+        total_volume_bytes=await metrics.total_volume_bytes(db),
+        queue=await metrics.queue_snapshot(db),
+        downloads_today=downloads_today,
+        active_users_today=active_users_today or 0,
+    )
+
+
+# --- A-12 : état système ---
+
+
+class SystemResponse(BaseModel):
+    cpu_percent: float
+    cpu_frequency_mhz: float | None
+    cpu_temperature_celsius: float | None
+    ram_used_bytes: int
+    ram_total_bytes: int
+    disk_used_bytes: int
+    disk_total_bytes: int
+    downloads_dir_usage_bytes: int
+    uptime_seconds: float
+    yt_dlp_version: str
+
+
+@router.get("/admin/system", response_model=SystemResponse)
+async def admin_system(admin: User = Depends(require_admin)) -> SystemResponse:
+    # psutil.cpu_percent(interval=...) bloque le thread appelant (§1.3 : yt-dlp/ffmpeg
+    # suivent déjà ce principe via asyncio.to_thread pour ne jamais geler la boucle asyncio).
+    snapshot = await asyncio.to_thread(system_snapshot)
+    return SystemResponse(**snapshot, downloads_dir_usage_bytes=current_downloads_usage_bytes())
+
+
+# --- A-13 : journal ---
+
+
+class JournalEntry(BaseModel):
+    id: int
+    user_id: int | None
+    site: str | None
+    url: str
+    size_bytes: int | None
+    status: str
+    error_message: str | None
+    created_at: datetime
+
+
+@router.get("/admin/journal", response_model=list[JournalEntry])
+async def admin_journal(
+    status: str | None = None,
+    page: int = 1,
+    page_size: int = 50,
+    admin: User = Depends(require_admin),
+    db: AsyncSession = Depends(get_session),
+) -> list[JournalEntry]:
+    page = max(page, 1)
+    page_size = min(max(page_size, 1), 200)
+    query = select(Download).order_by(Download.id.desc())
+    if status is not None:
+        query = query.where(Download.status == status)
+    query = query.offset((page - 1) * page_size).limit(page_size)
+    result = await db.execute(query)
+    return [
+        JournalEntry(
+            id=d.id,
+            user_id=d.user_id,
+            site=d.site,
+            url=d.url,
+            size_bytes=d.size_bytes,
+            status=d.status,
+            error_message=d.error_message,
+            created_at=d.created_at,
+        )
+        for d in result.scalars().all()
+    ]
+
+
+# --- A-14 : actions rapides ---
+
+
+class ActionResponse(BaseModel):
+    ok: bool
+    message: str
+
+
+@router.post("/admin/actions/{action}", response_model=ActionResponse)
+async def run_action(
+    action: str, admin: User = Depends(require_admin), db: AsyncSession = Depends(get_session)
+) -> ActionResponse:
+    if action == "purge-downloads":
+        from app.core.cleanup import purge_all_download_files
+
+        removed = await purge_all_download_files(db)
+        return ActionResponse(ok=True, message=f"{removed} fichier(s) purgé(s).")
+
+    if action == "clear-queue":
+        from app.core.queue import clear_queue
+
+        count = await clear_queue(db)
+        return ActionResponse(ok=True, message=f"{count} tâche(s) en file annulée(s).")
+
+    if action == "update-ytdlp":
+        from app.core.ytdlp_update import UpdateInProgressError, update_yt_dlp
+
+        try:
+            version = await update_yt_dlp()
+        except UpdateInProgressError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+        return ActionResponse(ok=True, message=f"yt-dlp mis à jour ({version}).")
+
+    raise HTTPException(status_code=404, detail="Action inconnue.")

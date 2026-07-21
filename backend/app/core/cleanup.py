@@ -6,6 +6,7 @@ from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
 from app.core.db import async_session_maker
@@ -55,6 +56,33 @@ async def _expire_done_downloads() -> None:
             shutil.rmtree(job_dir, ignore_errors=True)
             download.status = DownloadStatus.EXPIRED
         await session.commit()
+
+
+_ACTIVE_STATUSES = (DownloadStatus.QUEUED, DownloadStatus.DOWNLOADING, DownloadStatus.PROCESSING)
+
+
+async def purge_all_download_files(db: AsyncSession) -> int:
+    """A-14 : action rapide « Purger les fichiers ». Ne touche jamais aux jobs actifs
+    (téléchargement/traitement en cours) — seulement les fichiers déjà `done`/orphelins."""
+    active_ids = set(
+        (await db.execute(select(Download.id).where(Download.status.in_(_ACTIVE_STATUSES)))).scalars().all()
+    )
+    root = Path(settings.downloads_dir)
+    removed = 0
+    if root.exists():
+        for job_dir in root.iterdir():
+            if not job_dir.is_dir():
+                continue
+            if job_dir.name.isdigit() and int(job_dir.name) in active_ids:
+                continue
+            shutil.rmtree(job_dir, ignore_errors=True)
+            removed += 1
+
+    result = await db.execute(select(Download).where(Download.status == DownloadStatus.DONE))
+    for download in result.scalars().all():
+        download.status = DownloadStatus.EXPIRED
+    await db.commit()
+    return removed
 
 
 async def _purge_orphan_directories() -> None:

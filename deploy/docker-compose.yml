@@ -23,6 +23,8 @@ services:
     env_file: .env
     volumes:
       - lutecium_data:/app/data
+      - /sys/class/thermal:/sys/class/thermal:ro
+      - /sys/class/hwmon:/sys/class/hwmon:ro
     networks:
       - lutecium
 

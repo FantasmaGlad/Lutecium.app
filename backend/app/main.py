@@ -7,6 +7,7 @@ from app.api import admin, analyze, auth, downloads, files, health
 from app.core.cleanup import cleanup_loop
 from app.core.db import async_session_maker
 from app.core.events import bus
+from app.core.logging_config import configure_logging
 from app.core.migrations import run_migrations
 from app.core.queue import reconcile_on_startup
 from app.core.runtime_settings import refresh_cache
@@ -32,6 +33,7 @@ async def lifespan(app: FastAPI):
 
 
 def create_app() -> FastAPI:
+    configure_logging()
     app = FastAPI(title="Lutecium", lifespan=lifespan)
     app.include_router(health.router, prefix="/api")
     app.include_router(analyze.router, prefix="/api")
