@@ -58,6 +58,9 @@
 
 .account-menu__quota-fill[data-over] {
   background: var(--color-success);
+  /* Liseré à fort contraste (CDC UI §2.2 : jamais d'aplat seul pour success/error) :
+     garantit la lisibilité du remplissage quel que soit le contraste avec la piste. */
+  box-shadow: inset 0 0 0 1px var(--color-accent);
 }
 
 .account-menu__quota-label {
