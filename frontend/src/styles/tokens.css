@@ -11,8 +11,14 @@
   --color-success: #7fb88f;
   --color-error: #c97b7b;
 
-  --font-mono: ui-monospace, "JetBrains Mono", "Cascadia Code", "SFMono-Regular", Menlo, Consolas, monospace;
-  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  /* Monospace tranchée en D-01 (CDC UI §2.3/§12.1) : JetBrains Mono, auto-hébergée
+     (@fontsource, cf. main.tsx) pour un rendu identique partout — c'est elle qui
+     porte l'identité terminal. Repli système si le chargement échoue. */
+  --font-mono: "JetBrains Mono", ui-monospace, "Cascadia Code", "SFMono-Regular", Menlo, Consolas, monospace;
+  /* Sans-serif : police système (CDC §2.3, option explicitement acceptée) plutôt
+     qu'auto-hébergée — rôle de confort seulement, ne porte pas l'identité, pas
+     besoin d'un poids de téléchargement supplémentaire. */
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 
   --radius-sm: 3px;
   --radius-md: 4px;
