@@ -2,9 +2,12 @@ from httpx import ASGITransport, AsyncClient
 import pytest
 import pytest_asyncio
 
+from datetime import datetime, timedelta, timezone
+
 from app.core.auth import hash_password
 from app.core.db import async_session_maker
 from app.main import create_app
+from app.models.system_metric import SystemMetric
 from app.models.user import User, UserRole
 
 
@@ -119,6 +122,44 @@ async def test_admin_metrics_and_system_and_journal(admin_client):
     journal = await admin_client.get("/api/admin/journal")
     assert journal.status_code == 200
     assert len(journal.json()) >= 1
+
+
+@pytest.mark.asyncio
+async def test_admin_system_history_filters_by_window(admin_client):
+    now = datetime.now(timezone.utc)
+    async with async_session_maker() as session:
+        session.add_all(
+            [
+                SystemMetric(
+                    recorded_at=now - timedelta(hours=1),
+                    cpu_percent=12.5,
+                    ram_percent=40.0,
+                    disk_percent=30.0,
+                    temperature_celsius=55.0,
+                    power_watts=None,
+                    net_rx_bytes_per_sec=1000.0,
+                    net_tx_bytes_per_sec=200.0,
+                ),
+                SystemMetric(
+                    recorded_at=now - timedelta(days=10),  # hors fenêtre 24h
+                    cpu_percent=99.0,
+                    ram_percent=90.0,
+                    disk_percent=90.0,
+                    temperature_celsius=80.0,
+                    power_watts=8.0,
+                    net_rx_bytes_per_sec=None,
+                    net_tx_bytes_per_sec=None,
+                ),
+            ]
+        )
+        await session.commit()
+
+    response = await admin_client.get("/api/admin/system/history", params={"hours": 24})
+    assert response.status_code == 200
+    points = response.json()
+    assert len(points) == 1
+    assert points[0]["cpu_percent"] == 12.5
+    assert points[0]["power_watts"] is None
 
 
 @pytest.mark.asyncio

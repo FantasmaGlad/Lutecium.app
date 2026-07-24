@@ -66,6 +66,52 @@
   color: var(--color-error);
 }
 
+.admin-system__history {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.admin-system__history-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.admin-system__history-title {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--color-text);
+}
+
+.admin-system__history-range {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.admin-system__history-range button {
+  min-height: 32px;
+  padding: 0 var(--space-2);
+  background: none;
+  border: 1px solid var(--color-surface-alt);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-secondary);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.admin-system__history-range button.is-active {
+  border-color: var(--color-accent);
+  color: var(--color-text);
+}
+
+.admin-system__history-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-2);
+}
+
 .admin-system__actions {
   display: flex;
   flex-wrap: wrap;

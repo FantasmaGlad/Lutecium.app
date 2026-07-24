@@ -92,3 +92,48 @@
     transition: none;
   }
 }
+
+.history-chart {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-surface);
+  border: 1px solid var(--color-surface-alt);
+  border-radius: var(--radius-md);
+}
+
+.history-chart__header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.history-chart__label {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+}
+
+.history-chart__latest {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.85rem;
+  color: var(--color-text);
+}
+
+.history-chart__canvas {
+  width: 100%;
+  height: 64px;
+  display: block;
+}
+
+.history-chart__empty {
+  margin: 0;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+}

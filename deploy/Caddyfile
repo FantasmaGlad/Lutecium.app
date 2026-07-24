@@ -8,6 +8,11 @@
 	}
 	handle {
 		root * /srv/site
+		# Repli SPA : toute route qui ne correspond pas à un fichier statique réel
+		# (ex. /login, /historique, /admin) doit servir index.html pour que React
+		# Router prenne le relais côté client — sans ça, navigation directe/rechargement
+		# sur une route autre que / renvoie 404.
+		try_files {path} /index.html
 		file_server
 	}
 	encode gzip

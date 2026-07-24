@@ -76,6 +76,9 @@ export interface SystemSnapshot {
   cpu_percent: number
   cpu_frequency_mhz: number | null
   cpu_temperature_celsius: number | null
+  power_watts: number | null
+  net_rx_bytes_per_sec: number | null
+  net_tx_bytes_per_sec: number | null
   ram_used_bytes: number
   ram_total_bytes: number
   disk_used_bytes: number
@@ -88,6 +91,21 @@ export interface SystemSnapshot {
 
 export function getSystem(): Promise<SystemSnapshot> {
   return request('/system')
+}
+
+export interface SystemMetricPoint {
+  recorded_at: string
+  cpu_percent: number
+  ram_percent: number
+  disk_percent: number
+  temperature_celsius: number | null
+  power_watts: number | null
+  net_rx_bytes_per_sec: number | null
+  net_tx_bytes_per_sec: number | null
+}
+
+export function getSystemHistory(hours: number): Promise<SystemMetricPoint[]> {
+  return request(`/system/history?hours=${hours}`)
 }
 
 export interface JournalEntry {

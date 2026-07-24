@@ -1,7 +1,7 @@
 import asyncio
 import secrets
 import string
-from datetime import date, datetime
+from datetime import date, datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
@@ -22,6 +22,7 @@ from app.models.daily_usage import DailyUsage
 from app.models.download import Download
 from app.models.guest_download import GuestDownload
 from app.models.session import Session as SessionModel
+from app.models.system_metric import SystemMetric
 from app.models.user import User, UserRole, UserStatus
 from app.services import metrics
 
@@ -280,6 +281,9 @@ class SystemResponse(BaseModel):
     cpu_percent: float
     cpu_frequency_mhz: float | None
     cpu_temperature_celsius: float | None
+    power_watts: float | None
+    net_rx_bytes_per_sec: float | None
+    net_tx_bytes_per_sec: float | None
     ram_used_bytes: int
     ram_total_bytes: int
     disk_used_bytes: int
@@ -313,6 +317,33 @@ async def admin_system_stream(admin: User = Depends(require_admin)) -> EventSour
             await asyncio.sleep(3)
 
     return EventSourceResponse(generator())
+
+
+class SystemMetricPoint(BaseModel):
+    recorded_at: datetime
+    cpu_percent: float
+    ram_percent: float
+    disk_percent: float
+    temperature_celsius: float | None
+    power_watts: float | None
+    net_rx_bytes_per_sec: float | None
+    net_tx_bytes_per_sec: float | None
+
+
+@router.get("/admin/system/history", response_model=list[SystemMetricPoint])
+async def admin_system_history(
+    hours: int = 24,
+    admin: User = Depends(require_admin),
+    db: AsyncSession = Depends(get_session),
+) -> list[SystemMetricPoint]:
+    """Graphiques d'évolution (UI §7.3) : échantillons pris toutes les 5 min (core/metrics_history.py),
+    conservés 7 jours. `hours` plafonné à 168 (7 j) pour rester cohérent avec la rétention."""
+    hours = max(1, min(hours, 24 * 7))
+    cutoff = datetime.now(timezone.utc) - timedelta(hours=hours)
+    result = await db.execute(
+        select(SystemMetric).where(SystemMetric.recorded_at >= cutoff).order_by(SystemMetric.recorded_at)
+    )
+    return [SystemMetricPoint.model_validate(row, from_attributes=True) for row in result.scalars().all()]
 
 
 # --- A-13 : journal ---

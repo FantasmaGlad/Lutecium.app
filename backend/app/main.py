@@ -9,6 +9,7 @@ from app.core.cleanup import cleanup_loop
 from app.core.db import async_session_maker
 from app.core.events import bus
 from app.core.logging_config import configure_logging
+from app.core.metrics_history import metrics_history_loop
 from app.core.migrations import run_migrations
 from app.core.queue import reconcile_on_startup
 from app.core.runtime_settings import refresh_cache
@@ -28,8 +29,10 @@ async def lifespan(app: FastAPI):
     await requeue_pending_jobs()
     workers = start_workers()
     cleanup_task = asyncio.create_task(cleanup_loop())
+    metrics_task = asyncio.create_task(metrics_history_loop())
     yield
     cleanup_task.cancel()
+    metrics_task.cancel()
     for task in workers:
         task.cancel()
 
