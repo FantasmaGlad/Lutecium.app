@@ -2,6 +2,8 @@ services:
   caddy:
     image: caddy:2-alpine
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
     ports:
       - "80:80"
       - "443:443"
@@ -20,6 +22,14 @@ services:
     build:
       context: ../backend
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      # /tmp (ffmpeg) et $HOME (cache interne yt-dlp, ex. nsig) : seules écritures hors du
+      # volume applicatif ; éphémères par nature, pas besoin de survivre à un redémarrage.
+      - /tmp
+      - /home/lutecium
     env_file: .env
     volumes:
       - lutecium_data:/app/data
@@ -32,6 +42,8 @@ services:
   duckdns:
     image: lscr.io/linuxserver/duckdns:latest
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
