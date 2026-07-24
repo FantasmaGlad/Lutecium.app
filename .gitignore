@@ -17,6 +17,8 @@ deploy/site/
 .env
 *.env.local
 cookies.txt
+deploy/cookies/*
+!deploy/cookies/.gitkeep
 
 # Données
 *.db

@@ -33,5 +33,9 @@ class Settings(BaseSettings):
     admin_pseudo: str | None = None
     admin_password: str | None = None
 
+    # Fichier cookies.txt (format Netscape) pour les sites qui l'exigent (M-04, F-16).
+    # Optionnel : ignoré si vide ou si le fichier n'existe pas au moment de l'appel.
+    cookies_file: str | None = None
+
 
 settings = Settings()

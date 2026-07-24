@@ -4,6 +4,7 @@ from typing import Any
 
 import yt_dlp
 
+from app.config import settings
 from app.core.errors import translate_analyze_error, translate_download_error
 
 
@@ -33,6 +34,16 @@ class DownloadFailedError(Exception):
         self.raw = raw or message
 
 
+def _cookies_opts() -> dict:
+    """Option `cookiefile` (M-04) : fichier Netscape monté dans le conteneur pour les sites
+    qui exigent une connexion (Instagram, certains contenus X/TikTok). Silencieusement
+    ignoré si non configuré ou si le fichier n'est pas présent, plutôt que de faire échouer
+    tous les téléchargements en son absence."""
+    if settings.cookies_file and Path(settings.cookies_file).is_file():
+        return {"cookiefile": settings.cookies_file}
+    return {}
+
+
 def extract_info(url: str) -> dict:
     """Analyse une URL via l'API Python de yt-dlp — jamais de commande shell (S-05)."""
     ydl_opts = {
@@ -42,6 +53,7 @@ def extract_info(url: str) -> dict:
         "no_warnings": True,
         # Détection rapide des playlists : n'en résout pas chaque entrée (F-15).
         "extract_flat": "in_playlist",
+        **_cookies_opts(),
     }
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -76,6 +88,7 @@ def _base_opts(
         "no_warnings": True,
         "progress_hooks": [on_progress],
         "postprocessor_hooks": [on_postprocessor],
+        **_cookies_opts(),
     }
     max_file_size_gb = options.get("max_file_size_gb")
     if max_file_size_gb:
