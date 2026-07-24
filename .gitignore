@@ -21,6 +21,7 @@ deploy/cookies/*
 !deploy/cookies/.gitkeep
 deploy/backups/*
 !deploy/backups/.gitkeep
+deploy/logs/
 
 # Données
 *.db

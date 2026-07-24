@@ -58,7 +58,11 @@ docker compose -f docker-compose.dev.yml up --build
 Voir [docs/PLAN.md](docs/PLAN.md) et [deploy/](deploy/) :
 
 - `deploy/provision/phase0.sh` — durcissement initial d'un Debian 13 vierge (SSH par clé, ufw, fail2ban, unattended-upgrades, Docker, auto-cpufreq).
-- `deploy/install-lutecium.sh` — installation complète et idempotente (réutilise `phase0.sh`, configuration interactive, déploiement des conteneurs, crons).
+- `deploy/install-lutecium.sh` — installation complète et idempotente (réutilise `phase0.sh`, configuration interactive, déploiement des conteneurs, crons). Affichage en couleur, étape par étape, avec journal détaillé (`deploy/logs/`) et résumé final :
+  ```
+  cd deploy && ./install-lutecium.sh
+  ```
+- `deploy/install-lutecium.sh --diagnose` — état de santé complet d'une installation existante, en lecture seule (Docker, conteneurs, certificat TLS, veille/session graphique, crons, backups…), utilisable seul ou lancé souvent en cas de souci. Peut aussi s'appeler directement : `bash deploy/provision/diagnose.sh`.
 - `deploy/docker-compose.yml` — Caddy + backend + DuckDNS en production.
 - `deploy/cron/` — mise à jour yt-dlp, backup base de données.
 
