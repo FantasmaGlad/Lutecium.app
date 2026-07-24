@@ -1,0 +1,19 @@
+# Exported by three-d-stage
+newmtl fur_white
+Kd 0.8963 0.8632 0.7913
+Ks 0.2000 0.2000 0.2000
+Ns 30
+d 1.0000
+
+newmtl nose_ear_pink
+Kd 0.7682 0.3864 0.3325
+Ks 0.2000 0.2000 0.2000
+Ns 90
+d 1.0000
+
+newmtl eyes_black
+Kd 0.0091 0.0070 0.0048
+Ks 0.2000 0.2000 0.2000
+Ns 130
+d 1.0000
+

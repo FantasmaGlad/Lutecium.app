@@ -1,0 +1,47 @@
+.mascot-bounds {
+  position: fixed;
+  inset: var(--space-3);
+  bottom: 90px;
+  z-index: 10;
+  pointer-events: none;
+}
+
+@media (min-width: 640px) {
+  .mascot-bounds {
+    bottom: var(--space-5);
+  }
+}
+
+.mascot {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 132px;
+  pointer-events: auto;
+  background: var(--color-surface);
+  border: 1px solid var(--color-surface-alt);
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  user-select: none;
+}
+
+.mascot__canvas {
+  width: 132px;
+  height: 132px;
+  touch-action: none;
+}
+
+.mascot__handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 18px;
+  color: var(--color-text-secondary);
+  border-top: 1px solid var(--color-surface-alt);
+  cursor: grab;
+  touch-action: none;
+}
+
+.mascot__handle:active {
+  cursor: grabbing;
+}

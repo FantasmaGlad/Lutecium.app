@@ -5,6 +5,7 @@ import { Header } from './components/Header'
 import { MainFlow } from './components/flow/MainFlow'
 import { DownloadManagerDrawer } from './components/DownloadManagerDrawer'
 import { Toasts } from './components/Toasts'
+import { Mascot } from './components/Mascot'
 import { AuthProvider, useAuth } from './lib/AuthContext'
 import { ToastProvider } from './lib/ToastContext'
 import { DownloadManagerProvider } from './lib/DownloadManagerContext'
@@ -42,6 +43,7 @@ function PublicLayout() {
       <Outlet />
       <DownloadManagerDrawer />
       <Toasts />
+      <Mascot />
     </DownloadManagerProvider>
   )
 }
