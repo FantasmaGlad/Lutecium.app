@@ -11,7 +11,10 @@ export function AccountPage() {
   if (!user) return null
 
   const over = user.usage_today_bytes > user.daily_quota_bytes
-  const pct = Math.min(100, (user.usage_today_bytes / user.daily_quota_bytes) * 100)
+  const rawPct = (user.usage_today_bytes / user.daily_quota_bytes) * 100
+  // Le quota-cadeau (CDC §6.4) doit "dépasser élégamment le maximum" — la jauge peut donc
+  // réellement franchir 100% (plafonnée à 130% pour rester lisible sur un dépassement extrême).
+  const pct = over ? Math.min(rawPct, 130) : Math.min(rawPct, 100)
 
   return (
     <div className="account-page">

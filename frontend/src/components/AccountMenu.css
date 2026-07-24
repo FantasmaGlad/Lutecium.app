@@ -48,7 +48,9 @@
   height: 4px;
   background: var(--color-surface-alt);
   border-radius: var(--radius-sm);
-  overflow: hidden;
+  /* visible (pas hidden) : cohérent avec /compte, le quota-cadeau peut dépasser
+     élégamment le conteneur plutôt que d'être plafonné à 100 % (CDC §6.4). */
+  overflow: visible;
 }
 
 .account-menu__quota-fill {

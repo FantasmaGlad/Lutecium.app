@@ -32,7 +32,9 @@
   height: 8px;
   background: var(--color-surface);
   border-radius: var(--radius-sm);
-  overflow: hidden;
+  /* visible (pas hidden) : le quota-cadeau doit pouvoir dépasser élégamment le
+     conteneur plutôt que d'être plafonné visuellement à 100 % (CDC §6.4). */
+  overflow: visible;
 }
 
 .account-page__quota-fill {
@@ -43,6 +45,7 @@
 
 .account-page__quota-fill[data-over] {
   background: var(--color-success);
+  box-shadow: 0 0 0 1px var(--color-success), 0 0 6px 0 var(--color-success);
 }
 
 .account-page__quota-label {

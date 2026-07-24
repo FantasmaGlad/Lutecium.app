@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
 import * as api from '../../lib/api'
 import { ApiError } from '../../lib/api'
 import { useAuth } from '../../lib/AuthContext'
@@ -116,13 +117,15 @@ export function MainFlow() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [job?.status])
 
-  if (phase === 'guest-blocked') {
-    return <GuestInvite />
-  }
+  let stepKey: string = phase
+  let content: ReactNode
 
-  if (phase === 'tracking' && job) {
+  if (phase === 'guest-blocked') {
+    content = <GuestInvite />
+  } else if (phase === 'tracking' && job) {
+    stepKey = `tracking-${job.status}`
     if (job.status === 'queued' || job.status === 'downloading' || job.status === 'processing') {
-      return (
+      content = (
         <div className="main-flow__tracking">
           <ProgressCard job={job} onCancel={() => manager.cancelJob(job.id)} />
           <button type="button" className="main-flow__new-link" onClick={resetToIdle}>
@@ -130,12 +133,12 @@ export function MainFlow() {
           </button>
         </div>
       )
-    }
-    if (job.status === 'done') {
-      return <DoneCard job={job} onRestart={resetToIdle} guestInvite={justFinishedGuest ? <GuestInvite /> : undefined} />
-    }
-    if (job.status === 'failed') {
-      return (
+    } else if (job.status === 'done') {
+      content = (
+        <DoneCard job={job} onRestart={resetToIdle} guestInvite={justFinishedGuest ? <GuestInvite /> : undefined} />
+      )
+    } else if (job.status === 'failed') {
+      content = (
         <ErrorCard
           message={job.errorMessage ?? 'Une erreur est survenue.'}
           onRetry={() => analyzeResult && setPhase('preview')}
@@ -143,18 +146,34 @@ export function MainFlow() {
         />
       )
     }
-  }
-
-  if (phase === 'preview' && analyzeResult) {
-    return <PreviewCard result={analyzeResult} onDownload={handleDownload} submitting={submitting} />
+  } else if (phase === 'preview' && analyzeResult) {
+    content = <PreviewCard result={analyzeResult} onDownload={handleDownload} submitting={submitting} />
+  } else {
+    content = (
+      <UrlCard
+        analyzing={phase === 'analyzing'}
+        error={analyzeError}
+        onSubmitUrl={handleSubmitUrl}
+        initialUrl={initialUrl}
+      />
+    )
   }
 
   return (
-    <UrlCard
-      analyzing={phase === 'analyzing'}
-      error={analyzeError}
-      onSubmitUrl={handleSubmitUrl}
-      initialUrl={initialUrl}
-    />
+    // Morphing du bloc central entre les états A→F (CDC UI §9, "le moment signature") :
+    // un fondu+glissement discret suffit à faire percevoir la transition comme fluide
+    // sans distraire — chaque carte garde par ailleurs ses propres micro-animations
+    // internes (ex. la célébration de DoneCard).
+    <AnimatePresence mode="wait">
+      <motion.div
+        key={stepKey}
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -8 }}
+        transition={{ duration: 0.22, ease: 'easeOut' }}
+      >
+        {content}
+      </motion.div>
+    </AnimatePresence>
   )
 }

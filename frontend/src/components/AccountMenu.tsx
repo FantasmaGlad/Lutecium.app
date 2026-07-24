@@ -34,7 +34,10 @@ export function AccountMenu() {
     )
   }
 
-  const quotaPct = Math.min(100, (user.usage_today_bytes / user.daily_quota_bytes) * 100)
+  const quotaOver = user.usage_today_bytes > user.daily_quota_bytes
+  const quotaRawPct = (user.usage_today_bytes / user.daily_quota_bytes) * 100
+  // Cohérent avec /compte (CDC §6.4) : la jauge peut dépasser 100% pour le quota-cadeau.
+  const quotaPct = quotaOver ? Math.min(quotaRawPct, 130) : Math.min(quotaRawPct, 100)
 
   return (
     <div className="account-menu" ref={ref}>
@@ -54,7 +57,7 @@ export function AccountMenu() {
               <div
                 className="account-menu__quota-fill"
                 style={{ width: `${quotaPct}%` }}
-                data-over={user.usage_today_bytes > user.daily_quota_bytes || undefined}
+                data-over={quotaOver || undefined}
               />
             </div>
             <span className="account-menu__quota-label">
