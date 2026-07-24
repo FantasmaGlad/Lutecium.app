@@ -1,5 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Fond plein bord à bord (obligatoire pour une icône maskable) ; le texte reste
+       dans la zone de sécurité centrale (cercle de rayon 40% = 25,6) pour ne pas être
+       rogné quel que soit le masque appliqué par l'OS (cercle, arrondi, squircle…). -->
   <rect width="64" height="64" fill="#1A1A1A"/>
   <text x="32" y="38" font-family="ui-monospace, 'JetBrains Mono', 'Cascadia Code', monospace"
-        font-size="16" font-weight="600" fill="#F2F2F2" text-anchor="middle">lu&gt;</text>
+        font-size="15" font-weight="600" fill="#F2F2F2" text-anchor="middle">lu&gt;</text>
 </svg>
