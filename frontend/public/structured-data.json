@@ -1,0 +1,16 @@
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Lutecium",
+  "url": "https://lutecium.app/",
+  "description": "Outil self-hosté de téléchargement de vidéos : colle un lien, choisis la qualité, télécharge — sans publicité, sans tracking, sans paywall.",
+  "applicationCategory": "MultimediaApplication",
+  "operatingSystem": "Tout navigateur web",
+  "inLanguage": "fr",
+  "isAccessibleForFree": true,
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "EUR"
+  }
+}

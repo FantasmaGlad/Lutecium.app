@@ -1,0 +1,17 @@
+# Lutecium
+
+> Outil self-hosté de téléchargement de vidéos (basé sur yt-dlp) : colle un lien YouTube, TikTok, Instagram, X et plus de 1000 autres sites, choisis la qualité, télécharge. Sans publicité, sans tracking, sans paywall.
+
+Lutecium est un projet personnel (code source bientôt publié en open source), dont l'esprit d'interface s'inspire de Cobalt Tools. Utilisable sans compte (1 téléchargement en mode invité) ou avec un compte gratuit (quota quotidien plus large). Une API est prévue pour un usage automatisé.
+
+## Pages
+
+- [Accueil](https://lutecium.app/) : coller un lien vidéo, choisir la qualité/le format/les sous-titres, télécharger la vidéo ou l'audio seul.
+- [À propos](https://lutecium.app/a-propos) : origine du projet, politique de confidentialité, contact.
+
+## Notes pour les agents
+
+- Site en français, interface de type terminal (police monospace), tutoiement.
+- Aucune collecte publicitaire ni tracking tiers ; aucune donnée revendue ou partagée.
+- Les fichiers téléchargés sont supprimés automatiquement 5 minutes après la fin du traitement.
+- Contact : clement.barillot3901@gmail.com

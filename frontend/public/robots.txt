@@ -1,0 +1,13 @@
+# Aucun robot n'est exclu (moteurs de recherche comme assistants IA) : le groupe
+# générique ci-dessous s'applique à tout crawler qui n'a pas de règles dédiées,
+# GPTBot/ClaudeBot/Google-Extended/PerplexityBot/CCBot etc. inclus.
+User-agent: *
+Disallow: /login
+Disallow: /register
+Disallow: /changer-mot-de-passe
+Disallow: /compte
+Disallow: /historique
+Disallow: /admin
+Allow: /
+
+Sitemap: https://lutecium.app/sitemap.xml
