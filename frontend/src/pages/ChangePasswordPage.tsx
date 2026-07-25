@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../lib/AuthContext'
 import { ApiError, changePassword } from '../lib/api'
+import { useLanguage } from '../lib/i18n/LanguageContext'
 import './AuthPage.css'
 
 interface ChangePasswordPageProps {
@@ -10,6 +11,7 @@ interface ChangePasswordPageProps {
 
 export function ChangePasswordPage({ forced = false }: ChangePasswordPageProps) {
   const { user, refresh } = useAuth()
+  const { t } = useLanguage()
   const navigate = useNavigate()
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
@@ -23,7 +25,7 @@ export function ChangePasswordPage({ forced = false }: ChangePasswordPageProps) 
     e.preventDefault()
     setError(null)
     if (newPassword !== confirm) {
-      setError('Les mots de passe ne correspondent pas.')
+      setError(t.auth.passwordMismatch)
       return
     }
     setSubmitting(true)
@@ -32,7 +34,7 @@ export function ChangePasswordPage({ forced = false }: ChangePasswordPageProps) 
       await refresh()
       navigate('/compte')
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Une erreur est survenue.')
+      setError(err instanceof ApiError ? err.message : t.common.genericError)
     } finally {
       setSubmitting(false)
     }
@@ -40,14 +42,12 @@ export function ChangePasswordPage({ forced = false }: ChangePasswordPageProps) 
 
   return (
     <div className="auth-page">
-      <h1 className="auth-page__title">Changer de mot de passe</h1>
-      {mustChange && (
-        <p className="auth-page__switch">Un administrateur a réinitialisé ton mot de passe. Choisis-en un nouveau.</p>
-      )}
+      <h1 className="auth-page__title">{t.auth.changePassword.title}</h1>
+      {mustChange && <p className="auth-page__switch">{t.auth.changePassword.forcedNotice}</p>}
       <form className="auth-page__form" onSubmit={onSubmit}>
         {!mustChange && (
           <label className="auth-page__field">
-            <span>Mot de passe actuel</span>
+            <span>{t.auth.changePassword.currentPassword}</span>
             <input
               type="password"
               value={currentPassword}
@@ -58,7 +58,7 @@ export function ChangePasswordPage({ forced = false }: ChangePasswordPageProps) 
           </label>
         )}
         <label className="auth-page__field">
-          <span>Nouveau mot de passe</span>
+          <span>{t.auth.changePassword.newPassword}</span>
           <input
             type="password"
             value={newPassword}
@@ -69,7 +69,7 @@ export function ChangePasswordPage({ forced = false }: ChangePasswordPageProps) 
           />
         </label>
         <label className="auth-page__field">
-          <span>Confirmation</span>
+          <span>{t.auth.changePassword.confirmPassword}</span>
           <input
             type="password"
             value={confirm}
@@ -81,7 +81,7 @@ export function ChangePasswordPage({ forced = false }: ChangePasswordPageProps) 
         </label>
         {error && <p className="auth-page__error">{error}</p>}
         <button type="submit" className="auth-page__submit" disabled={submitting}>
-          Valider
+          {t.auth.changePassword.submit}
         </button>
       </form>
     </div>

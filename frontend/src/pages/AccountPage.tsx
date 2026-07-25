@@ -2,10 +2,12 @@ import { motion } from 'framer-motion'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../lib/AuthContext'
 import { formatBytes } from '../lib/format'
+import { useLanguage } from '../lib/i18n/LanguageContext'
 import './AccountPage.css'
 
 export function AccountPage() {
   const { user, logout } = useAuth()
+  const { t } = useLanguage()
   const navigate = useNavigate()
 
   if (!user) return null
@@ -18,7 +20,7 @@ export function AccountPage() {
 
   return (
     <div className="account-page">
-      <h1 className="account-page__title">Mon compte</h1>
+      <h1 className="account-page__title">{t.account.title}</h1>
       <p className="account-page__pseudo">{user.pseudo}</p>
 
       <div className="account-page__quota">
@@ -40,17 +42,17 @@ export function AccountPage() {
             initial={{ opacity: 0, y: 4 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            Celle-ci est pour nous. Quota dépassé — à demain !
+            {t.account.giftQuotaMessage}
           </motion.p>
         )}
       </div>
 
       <div className="account-page__actions">
         <Link to="/changer-mot-de-passe" className="account-page__link">
-          Changer de mot de passe
+          {t.account.changePassword}
         </Link>
         <Link to="/historique" className="account-page__link">
-          Mon historique
+          {t.account.history}
         </Link>
         <button
           type="button"
@@ -60,7 +62,7 @@ export function AccountPage() {
             navigate('/')
           }}
         >
-          Déconnexion
+          {t.account.logout}
         </button>
       </div>
     </div>

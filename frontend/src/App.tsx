@@ -7,6 +7,7 @@ import { DownloadManagerDrawer } from './components/DownloadManagerDrawer'
 import { Toasts } from './components/Toasts'
 import { Mascot } from './components/Mascot'
 import { AuthProvider, useAuth } from './lib/AuthContext'
+import { LanguageProvider } from './lib/i18n/LanguageContext'
 import { ToastProvider } from './lib/ToastContext'
 import { DownloadManagerProvider } from './lib/DownloadManagerContext'
 import { notifyDownloadReady } from './lib/notifications'
@@ -97,11 +98,13 @@ function AppRoutes() {
 function App() {
   return (
     <MotionConfig reducedMotion="user">
-      <AuthProvider>
-        <ToastProvider>
-          <AppRoutes />
-        </ToastProvider>
-      </AuthProvider>
+      <LanguageProvider>
+        <AuthProvider>
+          <ToastProvider>
+            <AppRoutes />
+          </ToastProvider>
+        </AuthProvider>
+      </LanguageProvider>
     </MotionConfig>
   )
 }

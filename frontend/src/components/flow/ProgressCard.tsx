@@ -1,5 +1,6 @@
 import type { TrackedJob } from '../../lib/DownloadManagerContext'
 import { formatBytes, formatEtaApprox, formatSpeed } from '../../lib/format'
+import { useLanguage } from '../../lib/i18n/LanguageContext'
 import './ProgressCard.css'
 
 interface ProgressCardProps {
@@ -8,6 +9,7 @@ interface ProgressCardProps {
 }
 
 export function ProgressCard({ job, onCancel }: ProgressCardProps) {
+  const { t } = useLanguage()
   const pct =
     job.totalBytes && job.downloadedBytes != null
       ? Math.min(100, Math.round((job.downloadedBytes / job.totalBytes) * 100))
@@ -19,7 +21,7 @@ export function ProgressCard({ job, onCancel }: ProgressCardProps) {
 
       {job.status === 'queued' && (
         <p className="progress-card__line">
-          position n°{job.position} dans la file
+          {job.position != null ? t.progress.queuePosition(job.position) : null}
           {job.estimatedWaitSeconds != null && ` · ${formatEtaApprox(job.estimatedWaitSeconds)}`}
         </p>
       )}
@@ -41,10 +43,10 @@ export function ProgressCard({ job, onCancel }: ProgressCardProps) {
         </>
       )}
 
-      {job.status === 'processing' && <p className="progress-card__line">{job.step || 'traitement…'}</p>}
+      {job.status === 'processing' && <p className="progress-card__line">{job.step || t.progress.processing}</p>}
 
       <button type="button" className="progress-card__cancel" onClick={onCancel}>
-        Annuler
+        {t.progress.cancel}
       </button>
     </div>
   )

@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { ChevronDown } from 'lucide-react'
 import type { AnalyzeResponse, DownloadMode } from '../../lib/api'
 import { formatBytes, formatDuration } from '../../lib/format'
+import { useLanguage } from '../../lib/i18n/LanguageContext'
 import './PreviewCard.css'
 
 export interface DownloadChoice {
@@ -19,6 +20,7 @@ interface PreviewCardProps {
 }
 
 export function PreviewCard({ result, onDownload, submitting }: PreviewCardProps) {
+  const { t } = useLanguage()
   const bestVideo = result.video_formats[result.video_formats.length - 1]
   const bestAudio = result.audio_formats[result.audio_formats.length - 1]
 
@@ -63,7 +65,7 @@ export function PreviewCard({ result, onDownload, submitting }: PreviewCardProps
             onDownload({ mode: 'video', formatId: videoFormatId || undefined, filename })
           }
         >
-          Télécharger
+          {t.preview.download}
         </button>
         <button
           type="button"
@@ -71,12 +73,12 @@ export function PreviewCard({ result, onDownload, submitting }: PreviewCardProps
           disabled={submitting || result.audio_formats.length === 0}
           onClick={() => onDownload({ mode: 'audio', audioFormat, filename })}
         >
-          Audio seul
+          {t.preview.audioOnly}
         </button>
       </div>
 
       <p className="preview-card__weight">
-        poids estimé : <strong>{formatBytes(estimatedBytes)}</strong>
+        {t.preview.estimatedWeight} <strong>{formatBytes(estimatedBytes)}</strong>
       </p>
 
       <button
@@ -86,13 +88,13 @@ export function PreviewCard({ result, onDownload, submitting }: PreviewCardProps
         onClick={() => setAdvancedOpen((v) => !v)}
       >
         <ChevronDown size={16} className={advancedOpen ? 'preview-card__chevron--open' : ''} aria-hidden="true" />
-        Options avancées
+        {t.preview.advancedOptions}
       </button>
 
       {advancedOpen && (
         <div className="preview-card__advanced">
           <label className="preview-card__field">
-            <span>Qualité vidéo</span>
+            <span>{t.preview.videoQuality}</span>
             <select value={videoFormatId} onChange={(e) => setVideoFormatId(e.target.value)}>
               {result.video_formats.map((f) => (
                 <option key={f.format_id} value={f.format_id}>
@@ -104,7 +106,7 @@ export function PreviewCard({ result, onDownload, submitting }: PreviewCardProps
           </label>
 
           <label className="preview-card__field">
-            <span>Format audio</span>
+            <span>{t.preview.audioFormat}</span>
             <select value={audioFormat} onChange={(e) => setAudioFormat(e.target.value)}>
               <option value="mp3">mp3</option>
               <option value="m4a">m4a</option>
@@ -114,7 +116,7 @@ export function PreviewCard({ result, onDownload, submitting }: PreviewCardProps
 
           {result.subtitles.length > 0 && (
             <fieldset className="preview-card__field">
-              <legend>Sous-titres</legend>
+              <legend>{t.preview.subtitles}</legend>
               {result.subtitles.map((s) => (
                 <label key={s.lang} className="preview-card__checkbox">
                   <input
@@ -129,7 +131,7 @@ export function PreviewCard({ result, onDownload, submitting }: PreviewCardProps
           )}
 
           <label className="preview-card__field">
-            <span>Nom de fichier</span>
+            <span>{t.preview.filename}</span>
             <input type="text" value={filename} onChange={(e) => setFilename(e.target.value)} />
           </label>
 
@@ -140,7 +142,7 @@ export function PreviewCard({ result, onDownload, submitting }: PreviewCardProps
               disabled={submitting}
               onClick={() => onDownload({ mode: 'subtitles', subtitleLangs, filename })}
             >
-              Sous-titres seuls
+              {t.preview.subtitlesOnly}
             </button>
           )}
         </div>

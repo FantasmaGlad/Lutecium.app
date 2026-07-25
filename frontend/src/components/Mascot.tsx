@@ -4,6 +4,7 @@ import { Center, OrbitControls } from '@react-three/drei'
 import { GripHorizontal } from 'lucide-react'
 import { motion, useAnimationControls, useDragControls } from 'framer-motion'
 import { MTLLoader, OBJLoader } from 'three-stdlib'
+import { useLanguage } from '../lib/i18n/LanguageContext'
 import './Mascot.css'
 
 function usePrefersReducedMotion(): boolean {
@@ -48,6 +49,7 @@ export function Mascot() {
   const boundsRef = useRef<HTMLDivElement>(null)
   const opacityControls = useAnimationControls()
   const dragControls = useDragControls()
+  const { t } = useLanguage()
 
   useEffect(() => {
     opacityControls.start({ opacity: 1, scale: 1, transition: { duration: 0.4, delay: 0.3 } })
@@ -85,7 +87,7 @@ export function Mascot() {
         </div>
         <div
           className="mascot__handle"
-          title="Déplacer"
+          title={t.mascot.move}
           onPointerDown={(e) => dragControls.start(e)}
         >
           <GripHorizontal size={14} />

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useLanguage } from '../../lib/i18n/LanguageContext'
 import './ErrorCard.css'
 
 interface ErrorCardProps {
@@ -9,6 +10,7 @@ interface ErrorCardProps {
 }
 
 export function ErrorCard({ message, details, onRetry, onChangeUrl }: ErrorCardProps) {
+  const { t } = useLanguage()
   const [showDetails, setShowDetails] = useState(false)
 
   return (
@@ -16,16 +18,16 @@ export function ErrorCard({ message, details, onRetry, onChangeUrl }: ErrorCardP
       <p className="error-card__message">{message}</p>
       <div className="error-card__actions">
         <button type="button" className="error-card__action" onClick={onRetry}>
-          réessayer
+          {t.errorCard.retry}
         </button>
         <button type="button" className="error-card__action" onClick={onChangeUrl}>
-          changer d'URL
+          {t.errorCard.changeUrl}
         </button>
       </div>
       {details && (
         <>
           <button type="button" className="error-card__details-toggle" onClick={() => setShowDetails((v) => !v)}>
-            détails
+            {t.errorCard.details}
           </button>
           {showDetails && <p className="error-card__details">{details}</p>}
         </>

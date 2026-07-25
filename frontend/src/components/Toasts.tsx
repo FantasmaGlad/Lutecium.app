@@ -1,9 +1,11 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { useToast } from '../lib/ToastContext'
+import { useLanguage } from '../lib/i18n/LanguageContext'
 import './Toasts.css'
 
 export function Toasts() {
   const { toasts, dismissToast } = useToast()
+  const { t } = useLanguage()
 
   return (
     <div className="toasts" aria-live="polite">
@@ -19,7 +21,7 @@ export function Toasts() {
             role="status"
           >
             <span>{toast.message}</span>
-            <button type="button" aria-label="Fermer" onClick={() => dismissToast(toast.id)}>
+            <button type="button" aria-label={t.toasts.close} onClick={() => dismissToast(toast.id)}>
               ×
             </button>
           </motion.div>

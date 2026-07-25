@@ -1,12 +1,23 @@
+import { getLanguage } from './language'
+
+const BYTE_UNITS = {
+  fr: ['o', 'Ko', 'Mo', 'Go', 'To'],
+  en: ['B', 'KB', 'MB', 'GB', 'TB'],
+}
+
+export function localeTag(): string {
+  return getLanguage() === 'en' ? 'en-US' : 'fr-FR'
+}
+
 export function formatBytes(bytes: number | null | undefined): string {
   if (bytes == null || Number.isNaN(bytes)) return '—'
+  const units = BYTE_UNITS[getLanguage()]
   // `bytes` est un compte entier dans la plupart des appels, mais peut être un débit calculé
   // (ex. octets/s, cf. AdminSystemPage) — toujours arrondir plutôt que d'afficher les décimales
   // flottantes brutes.
-  if (bytes < 1024) return `${Math.round(bytes)} o`
-  const units = ['Ko', 'Mo', 'Go', 'To']
+  if (bytes < 1024) return `${Math.round(bytes)} ${units[0]}`
   let value = bytes / 1024
-  let i = 0
+  let i = 1
   while (value >= 1024 && i < units.length - 1) {
     value /= 1024
     i += 1

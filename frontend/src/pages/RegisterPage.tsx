@@ -2,10 +2,12 @@ import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../lib/AuthContext'
 import { ApiError } from '../lib/api'
+import { useLanguage } from '../lib/i18n/LanguageContext'
 import './AuthPage.css'
 
 export function RegisterPage() {
   const { register } = useAuth()
+  const { t } = useLanguage()
   const navigate = useNavigate()
   const [pseudo, setPseudo] = useState('')
   const [password, setPassword] = useState('')
@@ -17,7 +19,7 @@ export function RegisterPage() {
     e.preventDefault()
     setError(null)
     if (password !== confirm) {
-      setError('Les mots de passe ne correspondent pas.')
+      setError(t.auth.passwordMismatch)
       return
     }
     setSubmitting(true)
@@ -25,7 +27,7 @@ export function RegisterPage() {
       await register(pseudo, password)
       navigate('/') // reprise de l'URL en attente (§6.2) gérée par MainFlow au montage
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Une erreur est survenue.')
+      setError(err instanceof ApiError ? err.message : t.common.genericError)
     } finally {
       setSubmitting(false)
     }
@@ -33,10 +35,10 @@ export function RegisterPage() {
 
   return (
     <div className="auth-page">
-      <h1 className="auth-page__title">Créer un compte</h1>
+      <h1 className="auth-page__title">{t.auth.register.title}</h1>
       <form className="auth-page__form" onSubmit={onSubmit}>
         <label className="auth-page__field">
-          <span>Pseudo</span>
+          <span>{t.auth.pseudo}</span>
           <input
             type="text"
             value={pseudo}
@@ -48,7 +50,7 @@ export function RegisterPage() {
           />
         </label>
         <label className="auth-page__field">
-          <span>Mot de passe</span>
+          <span>{t.auth.password}</span>
           <input
             type="password"
             value={password}
@@ -59,7 +61,7 @@ export function RegisterPage() {
           />
         </label>
         <label className="auth-page__field">
-          <span>Confirmation</span>
+          <span>{t.auth.register.confirmPassword}</span>
           <input
             type="password"
             value={confirm}
@@ -71,11 +73,11 @@ export function RegisterPage() {
         </label>
         {error && <p className="auth-page__error">{error}</p>}
         <button type="submit" className="auth-page__submit" disabled={submitting}>
-          Créer un compte
+          {t.auth.register.submit}
         </button>
       </form>
       <p className="auth-page__switch">
-        Déjà un compte ? <Link to="/login">Se connecter</Link>
+        {t.auth.register.hasAccount} <Link to="/login">{t.auth.register.login}</Link>
       </p>
     </div>
   )

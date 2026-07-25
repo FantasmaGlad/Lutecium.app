@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { motion } from 'framer-motion'
 import type { TrackedJob } from '../../lib/DownloadManagerContext'
 import { formatBytes } from '../../lib/format'
+import { useLanguage } from '../../lib/i18n/LanguageContext'
 import './DoneCard.css'
 
 const FILE_TTL_SECONDS = 5 * 60
@@ -13,6 +14,7 @@ interface DoneCardProps {
 }
 
 export function DoneCard({ job, onRestart, guestInvite }: DoneCardProps) {
+  const { t } = useLanguage()
   const [remaining, setRemaining] = useState(FILE_TTL_SECONDS)
 
   useEffect(() => {
@@ -43,28 +45,28 @@ export function DoneCard({ job, onRestart, guestInvite }: DoneCardProps) {
       {/* Annoncé une seule fois aux lecteurs d'écran ; le compte à rebours ci-dessous ne l'est pas
           (aria-live sur une valeur qui change chaque seconde serait bruyant, cf. UI §11). */}
       <p className="done-card__sr-status" role="status">
-        {expired ? 'Ce fichier n’est plus disponible.' : 'Ton fichier est prêt.'}
+        {expired ? t.done.expiredStatus : t.done.readyStatus}
       </p>
       {expired ? (
         <p className="done-card__expired" aria-hidden="true">
-          Ce fichier n'est plus disponible.
+          {t.done.expired}
         </p>
       ) : (
         <>
           <a className="done-card__save" href={job.fileUrl} download={job.filename}>
-            Enregistrer le fichier
+            {t.done.save}
           </a>
           <p className="done-card__meta">
             {job.filename} · {formatBytes(job.sizeBytes)}
           </p>
           <p className="done-card__countdown">
-            disponible encore {minutes}:{String(seconds).padStart(2, '0')}
+            {t.done.availableFor} {minutes}:{String(seconds).padStart(2, '0')}
           </p>
         </>
       )}
       {guestInvite}
       <button type="button" className="done-card__restart" onClick={onRestart}>
-        télécharger autre chose
+        {t.done.restart}
       </button>
     </motion.div>
   )

@@ -9,6 +9,7 @@ import { requestNotificationPermissionOnce } from '../../lib/notifications'
 import { hasUsedGuestDownload, markGuestDownloadUsed } from '../../lib/guestState'
 import { setPendingUrl, takePendingUrl } from '../../lib/pendingUrl'
 import { takeSharedUrl } from '../../lib/pwa'
+import { useLanguage } from '../../lib/i18n/LanguageContext'
 import { UrlCard } from '../UrlCard'
 import { PreviewCard, type DownloadChoice } from './PreviewCard'
 import { ProgressCard } from './ProgressCard'
@@ -23,6 +24,7 @@ export function MainFlow() {
   const { user } = useAuth()
   const manager = useDownloadManager()
   const { showToast } = useToast()
+  const { t } = useLanguage()
 
   const [phase, setPhase] = useState<Phase>('idle')
   const [analyzeError, setAnalyzeError] = useState<string | null>(null)
@@ -64,7 +66,7 @@ export function MainFlow() {
       setAnalyzeResult(result)
       setPhase('preview')
     } catch (err) {
-      setAnalyzeError(err instanceof ApiError ? err.message : "Ce lien n'est pas reconnu.")
+      setAnalyzeError(err instanceof ApiError ? err.message : t.home.unrecognizedLink)
       setPhase('idle')
     }
   }
@@ -96,7 +98,7 @@ export function MainFlow() {
         setPendingUrl(currentUrl)
         setPhase('guest-blocked')
       } else {
-        showToast(err instanceof ApiError ? err.message : 'Une erreur est survenue.', 'error')
+        showToast(err instanceof ApiError ? err.message : t.common.genericError, 'error')
       }
     } finally {
       setSubmitting(false)
@@ -129,7 +131,7 @@ export function MainFlow() {
         <div className="main-flow__tracking">
           <ProgressCard job={job} onCancel={() => manager.cancelJob(job.id)} />
           <button type="button" className="main-flow__new-link" onClick={resetToIdle}>
-            + coller un nouveau lien
+            {t.home.newLink}
           </button>
         </div>
       )
@@ -140,7 +142,7 @@ export function MainFlow() {
     } else if (job.status === 'failed') {
       content = (
         <ErrorCard
-          message={job.errorMessage ?? 'Une erreur est survenue.'}
+          message={job.errorMessage ?? t.common.genericError}
           onRetry={() => analyzeResult && setPhase('preview')}
           onChangeUrl={resetToIdle}
         />

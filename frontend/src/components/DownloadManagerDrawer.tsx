@@ -2,20 +2,13 @@ import { AnimatePresence, motion } from 'framer-motion'
 import * as api from '../lib/api'
 import { useDownloadManager, isTerminalStatus, type TrackedJob } from '../lib/DownloadManagerContext'
 import { formatBytes, formatEtaApprox } from '../lib/format'
+import { useLanguage } from '../lib/i18n/LanguageContext'
 import './DownloadManagerDrawer.css'
-
-const STATUS_LABEL: Record<TrackedJob['status'], string> = {
-  queued: 'en file',
-  downloading: 'téléchargement',
-  processing: 'traitement',
-  done: 'prêt',
-  failed: 'échoué',
-  cancelled: 'annulé',
-  expired: 'expiré',
-}
 
 export function DownloadManagerDrawer() {
   const manager = useDownloadManager()
+  const { t } = useLanguage()
+  const STATUS_LABEL: Record<TrackedJob['status'], string> = t.downloadManager.status
 
   if (manager.jobs.length === 0) return null
 
@@ -35,7 +28,7 @@ export function DownloadManagerDrawer() {
         onClick={() => manager.setOpen(!manager.isOpen)}
         aria-expanded={manager.isOpen}
       >
-        <span>Téléchargements</span>
+        <span>{t.downloadManager.title}</span>
         {activeCount > 0 && <span className="dl-manager__badge">{activeCount}</span>}
       </button>
       <AnimatePresence>
@@ -76,7 +69,7 @@ export function DownloadManagerDrawer() {
                   <div className="dl-manager__row-actions">
                     {job.status === 'done' && job.fileUrl && (
                       <a href={job.fileUrl} download={job.filename} className="dl-manager__row-action">
-                        enregistrer
+                        {t.downloadManager.save}
                       </a>
                     )}
                     {(job.status === 'queued' || job.status === 'downloading' || job.status === 'processing') && (
@@ -85,12 +78,12 @@ export function DownloadManagerDrawer() {
                         className="dl-manager__row-action"
                         onClick={() => manager.cancelJob(job.id)}
                       >
-                        annuler
+                        {t.downloadManager.cancel}
                       </button>
                     )}
                     {job.status === 'failed' && (
                       <button type="button" className="dl-manager__row-action" onClick={() => retryJob(job)}>
-                        réessayer
+                        {t.downloadManager.retry}
                       </button>
                     )}
                     {isTerminalStatus(job.status) && (
@@ -99,7 +92,7 @@ export function DownloadManagerDrawer() {
                         className="dl-manager__row-action"
                         onClick={() => manager.removeJob(job.id)}
                       >
-                        retirer
+                        {t.downloadManager.remove}
                       </button>
                     )}
                   </div>

@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
+import { useLanguage } from '../lib/i18n/LanguageContext'
 import './UrlCard.css'
-
-const SUPPORTED_SITES = 'YouTube, TikTok, Instagram, X, +1000 autres'
 
 function looksLikeUrl(value: string): boolean {
   try {
@@ -20,6 +19,7 @@ interface UrlCardProps {
 }
 
 export function UrlCard({ analyzing, error, onSubmitUrl, initialUrl }: UrlCardProps) {
+  const { t } = useLanguage()
   const [url, setUrl] = useState(initialUrl ?? '')
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const lastSubmitted = useRef<string | null>(null)
@@ -63,10 +63,10 @@ export function UrlCard({ analyzing, error, onSubmitUrl, initialUrl }: UrlCardPr
           type="url"
           inputMode="url"
           className="url-card__input"
-          placeholder="colle un lien ici…"
+          placeholder={t.home.urlPlaceholder}
           value={url}
           onChange={(e) => setUrl(e.target.value)}
-          aria-label="Lien de la vidéo à télécharger"
+          aria-label={t.home.urlLabel}
           aria-invalid={Boolean(error)}
           aria-describedby={error ? 'url-card-error' : undefined}
         />
@@ -74,14 +74,15 @@ export function UrlCard({ analyzing, error, onSubmitUrl, initialUrl }: UrlCardPr
           type="button"
           className="url-card__paste"
           onClick={pasteFromClipboard}
-          aria-label="Coller depuis le presse-papier"
+          aria-label={t.home.pasteLabel}
         >
           ⎘
         </button>
       </div>
       {analyzing && (
         <p className="url-card__status" aria-live="polite">
-          analyse en cours<span className="url-card__dots" aria-hidden="true">…</span>
+          {t.home.analyzing}
+          <span className="url-card__dots" aria-hidden="true">…</span>
         </p>
       )}
       {error && !analyzing && (
@@ -89,7 +90,7 @@ export function UrlCard({ analyzing, error, onSubmitUrl, initialUrl }: UrlCardPr
           {error}
         </p>
       )}
-      {!analyzing && !error && <p className="url-card__supported">{SUPPORTED_SITES}</p>}
+      {!analyzing && !error && <p className="url-card__supported">{t.home.supportedSites}</p>}
     </div>
   )
 }

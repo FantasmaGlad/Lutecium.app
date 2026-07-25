@@ -2,10 +2,12 @@ import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../lib/AuthContext'
 import { ApiError } from '../lib/api'
+import { useLanguage } from '../lib/i18n/LanguageContext'
 import './AuthPage.css'
 
 export function LoginPage() {
   const { login } = useAuth()
+  const { t } = useLanguage()
   const navigate = useNavigate()
   const [pseudo, setPseudo] = useState('')
   const [password, setPassword] = useState('')
@@ -20,7 +22,7 @@ export function LoginPage() {
       const user = await login(pseudo, password)
       navigate(user.must_change_password ? '/changer-mot-de-passe' : '/')
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Une erreur est survenue.')
+      setError(err instanceof ApiError ? err.message : t.common.genericError)
     } finally {
       setSubmitting(false)
     }
@@ -28,10 +30,10 @@ export function LoginPage() {
 
   return (
     <div className="auth-page">
-      <h1 className="auth-page__title">Se connecter</h1>
+      <h1 className="auth-page__title">{t.auth.login.title}</h1>
       <form className="auth-page__form" onSubmit={onSubmit}>
         <label className="auth-page__field">
-          <span>Pseudo</span>
+          <span>{t.auth.pseudo}</span>
           <input
             type="text"
             value={pseudo}
@@ -41,7 +43,7 @@ export function LoginPage() {
           />
         </label>
         <label className="auth-page__field">
-          <span>Mot de passe</span>
+          <span>{t.auth.password}</span>
           <input
             type="password"
             value={password}
@@ -52,11 +54,11 @@ export function LoginPage() {
         </label>
         {error && <p className="auth-page__error">{error}</p>}
         <button type="submit" className="auth-page__submit" disabled={submitting}>
-          Se connecter
+          {t.auth.login.submit}
         </button>
       </form>
       <p className="auth-page__switch">
-        Pas encore de compte ? <Link to="/register">Créer un compte</Link>
+        {t.auth.login.noAccount} <Link to="/register">{t.auth.login.createAccount}</Link>
       </p>
     </div>
   )

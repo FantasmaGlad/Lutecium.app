@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import * as adminApi from '../../lib/adminApi'
-import { formatBytes } from '../../lib/format'
+import { formatBytes, localeTag } from '../../lib/format'
+import { useLanguage } from '../../lib/i18n/LanguageContext'
 import { ErrorBanner } from './AdminWidgets'
 import './AdminLogsPage.css'
 
@@ -11,6 +12,7 @@ export function AdminLogsPage() {
   const [statusFilter, setStatusFilter] = useState('')
   const [search, setSearch] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const { t } = useLanguage()
 
   useEffect(() => {
     adminApi
@@ -19,7 +21,8 @@ export function AdminLogsPage() {
         setEntries(data)
         setError(null)
       })
-      .catch((err) => setError(err instanceof Error ? err.message : 'Une erreur est survenue.'))
+      .catch((err) => setError(err instanceof Error ? err.message : t.common.genericError))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [statusFilter])
 
   const filtered = useMemo(() => {
@@ -31,11 +34,11 @@ export function AdminLogsPage() {
 
   return (
     <div className="admin-logs">
-      <h1 className="admin-logs__title">Journaux</h1>
+      <h1 className="admin-logs__title">{t.admin.logs.title}</h1>
 
       <div className="admin-logs__filters">
         <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-          <option value="">tous les statuts</option>
+          <option value="">{t.admin.logs.allStatuses}</option>
           {STATUSES.map((s) => (
             <option key={s} value={s}>
               {s}
@@ -44,46 +47,46 @@ export function AdminLogsPage() {
         </select>
         <input
           type="search"
-          placeholder="rechercher (URL, site)…"
+          placeholder={t.admin.logs.searchPlaceholder}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
       </div>
 
       {error && <ErrorBanner message={error} />}
-      {!entries && !error && <p className="admin-logs__loading">Chargement…</p>}
+      {!entries && !error && <p className="admin-logs__loading">{t.common.loading}</p>}
 
       {entries && (
         <div className="admin-logs__table-wrap">
           <table className="admin-logs__table">
             <thead>
               <tr>
-                <th>ID</th>
-                <th>Utilisateur</th>
-                <th>Site</th>
-                <th>URL</th>
-                <th>Taille</th>
-                <th>Statut</th>
-                <th>Date</th>
+                <th>{t.admin.logs.colId}</th>
+                <th>{t.admin.logs.colUser}</th>
+                <th>{t.admin.logs.colSite}</th>
+                <th>{t.admin.logs.colUrl}</th>
+                <th>{t.admin.logs.colSize}</th>
+                <th>{t.admin.logs.colStatus}</th>
+                <th>{t.admin.logs.colDate}</th>
               </tr>
             </thead>
             <tbody>
               {filtered.map((e) => (
                 <tr key={e.id} className={e.status === 'failed' ? 'admin-logs__row--error' : undefined}>
                   <td>#{e.id}</td>
-                  <td>{e.user_id ?? 'invité'}</td>
+                  <td>{e.user_id ?? t.admin.logs.guest}</td>
                   <td>{e.site ?? '—'}</td>
                   <td className="admin-logs__url" title={e.url}>
                     {e.url}
                   </td>
                   <td>{formatBytes(e.size_bytes)}</td>
                   <td>{e.status}{e.error_message ? ` · ${e.error_message}` : ''}</td>
-                  <td>{new Date(e.created_at).toLocaleString('fr-FR')}</td>
+                  <td>{new Date(e.created_at).toLocaleString(localeTag())}</td>
                 </tr>
               ))}
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={7}>Aucune entrée.</td>
+                  <td colSpan={7}>{t.admin.logs.noEntries}</td>
                 </tr>
               )}
             </tbody>

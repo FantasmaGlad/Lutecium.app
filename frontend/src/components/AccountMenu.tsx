@@ -2,10 +2,12 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../lib/AuthContext'
 import { formatBytes } from '../lib/format'
+import { useLanguage } from '../lib/i18n/LanguageContext'
 import './AccountMenu.css'
 
 export function AccountMenu() {
   const { user, logout } = useAuth()
+  const { t } = useLanguage()
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
   const navigate = useNavigate()
@@ -29,7 +31,7 @@ export function AccountMenu() {
   if (!user) {
     return (
       <Link to="/login" className="header__account">
-        Se connecter
+        {t.header.login}
       </Link>
     )
   }
@@ -65,10 +67,10 @@ export function AccountMenu() {
             </span>
           </div>
           <Link to="/historique" onClick={() => setOpen(false)}>
-            Mon historique
+            {t.nav.history}
           </Link>
           <Link to="/compte" onClick={() => setOpen(false)}>
-            Mon compte
+            {t.nav.account}
           </Link>
           <button
             type="button"
@@ -78,7 +80,7 @@ export function AccountMenu() {
               navigate('/')
             }}
           >
-            Déconnexion
+            {t.accountMenu.logout}
           </button>
         </div>
       )}

@@ -1,67 +1,50 @@
+import { useLanguage } from '../lib/i18n/LanguageContext'
 import './AboutPage.css'
 
 export function AboutPage() {
+  const { t } = useLanguage()
+
   return (
     <div className="about-page">
-      <h1 className="about-page__title">À propos</h1>
+      <h1 className="about-page__title">{t.about.title}</h1>
 
       <div className="about-page__prose">
-        <p>Lutecium vient de Lutèce, la ville de Paris, et de « cium », comme un minerai.</p>
+        <p>{t.about.p1}</p>
+
+        <p>{t.about.p2}</p>
+
+        <p>{t.about.p3}</p>
+
+        <p>{t.about.p4}</p>
 
         <p>
-          Je souhaitais une alternative aux sites de téléchargement de vidéo saturés de pubs, de liens
-          redirecteurs douteux et de paywalls.
-        </p>
-
-        <p>
-          Un outil simple et honnête, où tu colles un lien et récupères ton fichier en qualité maximale (ou
-          moins si tu regardes tes vidéos sur un Kidizoom), sans détour et sans rien payer.
-        </p>
-
-        <p>
-          Lutecium, c'est aussi mon projet self-hosté de bout en bout — API, base de données, interface,
-          déploiement — pour apprendre à le faire tourner en vrai, et pour offrir enfin un service sur
-          lequel on peut compter.
-        </p>
-
-        <p>
-          L'esprit du projet et l'interface s'inspirent de{' '}
+          {t.about.p5Prefix}{' '}
           <a href="https://cobalt.tools" target="_blank" rel="noopener noreferrer">
             Cobalt Tools
-          </a>{' '}
-          : simple, rapide, sans détour.
+          </a>
+          {t.about.p5Suffix}
         </p>
 
-        <p>Dédicace à Baamix, la mascotte de mon site, mon hamster :)</p>
+        <p>{t.about.p6}</p>
 
-        <p>Celle qui m'a donné envie de me lancer dans le développement il y a deux ans, le 19/09/2024.</p>
+        <p>{t.about.p7}</p>
       </div>
 
       <section className="about-page__section">
-        <h2 className="about-page__heading">Confidentialité</h2>
-        <p>
-          Aucun tracking, aucune pub. La base de données ne sert qu'à te proposer un historique de tes
-          téléchargements et à limiter les abus (bots, usage excessif du mode invité) — rien n'est revendu
-          ni partagé. Les fichiers téléchargés sont supprimés automatiquement 5 minutes après la fin du
-          traitement.
-        </p>
+        <h2 className="about-page__heading">{t.about.privacyHeading}</h2>
+        <p>{t.about.privacy}</p>
       </section>
 
       <section className="about-page__section">
-        <h2 className="about-page__heading">Code source</h2>
-        <p>
-          Le code source sera bientôt publié. Lutecium s'inscrit dans une démarche de libre accès : après
-          avoir profité d'innombrables outils open source pour construire ce projet, il est temps de rendre
-          la pareille à cette communauté.
-        </p>
-        <p>Une API est prévue pour les sites ou scripts qui voudraient utiliser Lutecium de façon automatisée.</p>
+        <h2 className="about-page__heading">{t.about.sourceHeading}</h2>
+        <p>{t.about.source}</p>
+        <p>{t.about.api}</p>
       </section>
 
       <section className="about-page__section">
-        <h2 className="about-page__heading">Contact</h2>
+        <h2 className="about-page__heading">{t.about.contactHeading}</h2>
         <p>
-          Une question, un bug, une suggestion ? Écris-moi :{' '}
-          <a href="mailto:clement.barillot3901@gmail.com">clement.barillot3901@gmail.com</a>
+          {t.about.contactPrefix} <a href="mailto:clement.barillot3901@gmail.com">clement.barillot3901@gmail.com</a>
         </p>
       </section>
     </div>

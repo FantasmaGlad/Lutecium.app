@@ -2,30 +2,24 @@ import { useEffect, useState } from 'react'
 import * as api from '../lib/api'
 import { useDownloadManager } from '../lib/DownloadManagerContext'
 import { useToast } from '../lib/ToastContext'
-import { formatBytes } from '../lib/format'
+import { formatBytes, localeTag } from '../lib/format'
+import { useLanguage } from '../lib/i18n/LanguageContext'
 import './HistoryPage.css'
-
-const STATUS_LABEL: Record<string, string> = {
-  queued: 'en file',
-  downloading: 'téléchargement',
-  processing: 'traitement',
-  done: 'terminé',
-  failed: 'échoué',
-  cancelled: 'annulé',
-  expired: 'expiré',
-}
 
 export function HistoryPage() {
   const [items, setItems] = useState<api.HistoryItem[] | null>(null)
   const [error, setError] = useState<string | null>(null)
   const manager = useDownloadManager()
   const { showToast } = useToast()
+  const { t } = useLanguage()
+  const STATUS_LABEL: Record<string, string> = t.history.status
 
   useEffect(() => {
     api
       .getHistory()
       .then((res) => setItems(res.items))
-      .catch(() => setError("Impossible de charger l'historique."))
+      .catch(() => setError(t.history.loadError))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   async function retelecharger(item: api.HistoryItem) {
@@ -40,17 +34,17 @@ export function HistoryPage() {
         position: response.position,
       })
       manager.setOpen(true)
-      showToast('Ajouté à la file de téléchargement.', 'success')
+      showToast(t.history.queuedToast, 'success')
     } catch (err) {
-      showToast(err instanceof api.ApiError ? err.message : 'Une erreur est survenue.', 'error')
+      showToast(err instanceof api.ApiError ? err.message : t.common.genericError, 'error')
     }
   }
 
   return (
     <div className="history-page">
-      <h1 className="history-page__title">Mon historique</h1>
+      <h1 className="history-page__title">{t.history.title}</h1>
       {error && <p className="history-page__error">{error}</p>}
-      {items && items.length === 0 && <p className="history-page__empty">Aucun téléchargement pour l'instant.</p>}
+      {items && items.length === 0 && <p className="history-page__empty">{t.history.empty}</p>}
       {items && items.length > 0 && (
         <ul className="history-page__list">
           {items.map((item) => (
@@ -58,12 +52,12 @@ export function HistoryPage() {
               <div className="history-page__row-info">
                 <span className="history-page__row-title">{item.filename ?? item.url}</span>
                 <span className="history-page__row-meta">
-                  {item.site ?? 'site inconnu'} · {formatBytes(item.size_bytes)} ·{' '}
-                  {new Date(item.created_at).toLocaleString('fr-FR')} · {STATUS_LABEL[item.status] ?? item.status}
+                  {item.site ?? t.history.unknownSite} · {formatBytes(item.size_bytes)} ·{' '}
+                  {new Date(item.created_at).toLocaleString(localeTag())} · {STATUS_LABEL[item.status] ?? item.status}
                 </span>
               </div>
               <button type="button" className="history-page__retry" onClick={() => retelecharger(item)}>
-                retélécharger
+                {t.history.retry}
               </button>
             </li>
           ))}

@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { useLanguage } from '../../lib/i18n/LanguageContext'
 import './AdminWidgets.css'
 
 export function ErrorBanner({ message }: { message: string }) {
@@ -55,6 +56,7 @@ export function LineChart({
   formatValue?: (v: number) => string
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const { t } = useLanguage()
   const fmt = formatValue ?? ((v: number) => v.toFixed(1))
   const withUnit = (v: number) => (unit ? `${fmt(v)} ${unit}` : fmt(v))
 
@@ -167,7 +169,7 @@ export function LineChart({
       {hasData ? (
         <canvas ref={canvasRef} className="history-chart__canvas" />
       ) : (
-        <p className="history-chart__empty">Pas encore de données (premier échantillon dans quelques minutes).</p>
+        <p className="history-chart__empty">{t.admin.widgets.noHistoryData}</p>
       )}
     </div>
   )
