@@ -100,15 +100,17 @@
 .preview-card__advanced-toggle {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: var(--space-1);
   align-self: center;
+  min-height: 44px;
+  padding: 0 var(--space-2);
   background: none;
   border: none;
   color: var(--color-text-secondary);
   font-family: var(--font-sans);
   font-size: 0.85rem;
   cursor: pointer;
-  padding: var(--space-1);
 }
 
 .preview-card__chevron--open {
@@ -128,6 +130,7 @@
 .preview-card__field {
   display: flex;
   flex-direction: column;
+  min-width: 0;
   gap: var(--space-1);
   font-family: var(--font-sans);
   font-size: 0.85rem;
@@ -139,6 +142,12 @@
 
 .preview-card__field select,
 .preview-card__field input[type='text'] {
+  /* Un <select> se dimensionne par défaut sur son option la plus longue (ex. « 1920x1080 ·
+     30fps · avc1.640028 · 80.9 Mo ») : sans largeur contrainte, ça déborde le viewport sur
+     mobile plutôt que de respecter la carte qui le contient. */
+  width: 100%;
+  max-width: 100%;
+  min-height: 44px;
   font-family: var(--font-mono);
   font-size: 0.9rem;
   color: var(--color-text);
@@ -151,7 +160,8 @@
 .preview-card__checkbox {
   display: flex;
   align-items: center;
-  gap: var(--space-1);
+  gap: var(--space-2);
+  min-height: 44px;
   font-family: var(--font-mono);
   font-size: 0.85rem;
   color: var(--color-text);

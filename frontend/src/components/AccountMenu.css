@@ -1,5 +1,10 @@
 .account-menu {
   position: relative;
+  /* Élément flex réel dans .header__actions (le bouton .header__account n'est qu'un
+     descendant) : sans min-width:0, un pseudo long (ex. e-mail admin) forcerait ce wrapper
+     à sa largeur de contenu naturelle et ferait déborder le header plutôt que de tronquer. */
+  min-width: 0;
+  flex-shrink: 1;
 }
 
 .account-menu__panel {
