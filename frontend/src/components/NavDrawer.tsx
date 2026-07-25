@@ -43,6 +43,9 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
             Admin
           </Link>
         )}
+        <Link to="/a-propos" onClick={onClose}>
+          À propos
+        </Link>
       </nav>
     </div>
   )

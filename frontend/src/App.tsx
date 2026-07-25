@@ -15,6 +15,7 @@ import { RegisterPage } from './pages/RegisterPage'
 import { ChangePasswordPage } from './pages/ChangePasswordPage'
 import { HistoryPage } from './pages/HistoryPage'
 import { AccountPage } from './pages/AccountPage'
+import { AboutPage } from './pages/AboutPage'
 import { AdminLayout } from './pages/admin/AdminLayout'
 import { AdminOverviewPage } from './pages/admin/AdminOverviewPage'
 import { AdminUsersPage } from './pages/admin/AdminUsersPage'
@@ -81,6 +82,7 @@ function AppRoutes() {
             </RequireAuth>
           }
         />
+        <Route path="/a-propos" element={<AboutPage />} />
       </Route>
       <Route path="/admin" element={<AdminLayout />}>
         <Route index element={<AdminOverviewPage />} />
