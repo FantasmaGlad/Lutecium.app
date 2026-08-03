@@ -32,9 +32,14 @@ backend/data/
 
 # Divers
 .DS_Store
-.claude/settings.local.json
 
-# Cartographie IA & MCP
-.claude/mcp/node_modules/
-.claude/mcp/package-lock.json
-
+# Fichiers IA & Agent Configuration
+.claude/
+.gemini/
+.agents/
+.mcp.json
+AGENTS.md
+CLAUDE.md
+structure.md
+TRACKING.md
+project-structure.json
