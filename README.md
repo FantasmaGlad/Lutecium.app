@@ -18,7 +18,7 @@ Pour une cartographie fichier-par-fichier du dépôt, voir [structure.md](.claud
 7. [Reverse proxy Caddy et durcissement sécurité](#7-reverse-proxy-caddy-et-durcissement-sécurité)
 8. [Client React 19 et communication temps réel (SSE)](#8-client-react-19-et-communication-temps-réel-sse)
 9. [Tests et vérification](#9-tests-et-vérification)
-10. [Outillage IA et cartographie](#10-outillage-ia-et-cartographie)
+10. [Outillage de cartographie et navigation](#10-outillage-de-cartographie-et-navigation)
 11. [Déploiement et exploitation](#11-déploiement-et-exploitation)
 12. [Licence](#12-licence)
 
