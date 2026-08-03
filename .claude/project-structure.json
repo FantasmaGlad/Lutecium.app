@@ -1,0 +1,249 @@
+{
+  "version": 1,
+  "generatedFrom": "structure.md",
+  "lastReviewed": "2026-08-03 (v1.0)",
+  "note": "Cartographie machine-readable du dépôt Lutecium, en complément de structure.md (lisible par un humain) et README.md (architecture en détail). Sert de source au serveur MCP local. Mets à jour CE fichier ET structure.md dans le MÊME commit si tu ajoutes/déplaces/supprimes un fichier important — sinon les deux deviennent trompeurs. Ce fichier est lié par lien symbolique depuis .gemini/project-structure.json.",
+  "workspaces": [
+    {
+      "name": "backend",
+      "path": "backend",
+      "dependsOn": [],
+      "description": "API REST & SSE FastAPI, workers asyncio yt-dlp + ffmpeg, persistance SQLite WAL."
+    },
+    {
+      "name": "frontend",
+      "path": "frontend",
+      "dependsOn": ["backend"],
+      "description": "Interface SPA React 19 + Vite + TS (esprit Cobalt), SSE progression, PWA, thèmes et i18n."
+    },
+    {
+      "name": "deploy",
+      "path": "deploy",
+      "dependsOn": ["backend", "frontend"],
+      "description": "Déploiement Docker Compose, Caddy (HTTPS auto), scripts de provisioning et crons."
+    },
+    {
+      "name": "docs",
+      "path": "docs",
+      "dependsOn": [],
+      "description": "Cahier des charges (exigences F/S/A/M/P), plan d'implémentation, design system, UI/UX."
+    }
+  ],
+  "entries": [
+    {
+      "path": "backend/app/main.py",
+      "workspace": "backend",
+      "tags": ["api", "fastapi", "entrypoint", "lifespan"],
+      "description": "Point d'entrée principal FastAPI avec gestion du cycle de vie (lifespan), démarrage des tâches de fond, montage des routes /api/* et gestion globale des exceptions LuteciumError."
+    },
+    {
+      "path": "backend/app/config.py",
+      "workspace": "backend",
+      "tags": ["config", "env", "settings"],
+      "description": "Déclarations des configurations d'environnement via Pydantic BaseSettings (.env). Les surcharges dynamiques définies par l'admin priment via effective_settings.py."
+    },
+    {
+      "path": "backend/app/core/worker.py",
+      "workspace": "backend",
+      "tags": ["yt-dlp", "download", "worker", "ffmpeg"],
+      "description": "Worker asyncio exécutant yt-dlp exclusivement via son API Python (S-05, jamais de shell). Gère la extraction, la conversion audio/vidéo ffmpeg et la restitution des états."
+    },
+    {
+      "path": "backend/app/core/queue.py",
+      "workspace": "backend",
+      "tags": ["queue", "concurrency", "asyncio", "sqlite"],
+      "description": "Gestionnaire de la file d'attente en mémoire avec persistance SQLite et reprise au redémarrage. Limite la concurrence à 2 téléchargements simultanés."
+    },
+    {
+      "path": "backend/app/core/sse.py",
+      "workspace": "backend",
+      "tags": ["sse", "events", "realtime"],
+      "description": "Gestionnaire Server-Sent Events diffusant la progression des téléchargements (étape, position file, %, vitesse, ETA) aux clients frontend connectés."
+    },
+    {
+      "path": "backend/app/core/guest.py",
+      "workspace": "backend",
+      "tags": ["guest", "quota", "privacy", "ip-hash"],
+      "description": "Suivi du quota des utilisateurs invités (sans compte). Utilise un hash d'adresse IP salé quotidiennement pour ne conserver aucune IP en clair (S-09)."
+    },
+    {
+      "path": "backend/app/core/quota.py",
+      "workspace": "backend",
+      "tags": ["quota", "usage", "limits"],
+      "description": "Contrôle des quotas journaliers en Go (USER_DAILY_QUOTA_GB, défaut 20 Go) avec réinitialisation quotidienne et gestion du téléchargement exceptionnel de dépassement."
+    },
+    {
+      "path": "backend/app/core/sessions.py",
+      "workspace": "backend",
+      "tags": ["auth", "session", "cookie", "security"],
+      "description": "Gestion des sessions utilisateur et création des cookies HTTP-only / SameSite=Lax / Secure adossés aux tokens de 256 bits enregistrés en base."
+    },
+    {
+      "path": "backend/app/core/filenames.py",
+      "workspace": "backend",
+      "tags": ["security", "filename", "sanitize"],
+      "description": "Filtrage et assainissement strict des noms de fichiers générés par liste blanche de caractères afin d'éviter toute vulnérabilité d'injection ou de traversée de dossier."
+    },
+    {
+      "path": "backend/app/core/effective_settings.py",
+      "workspace": "backend",
+      "tags": ["settings", "admin", "config-override"],
+      "description": "Résolution dynamique de la configuration finale combinant les variables .env et les valeurs modifiées à chaud en base de données par l'administrateur."
+    },
+    {
+      "path": "backend/app/api/analyze.py",
+      "workspace": "backend",
+      "tags": ["api", "analyze", "yt-dlp", "rate-limit"],
+      "description": "Endpoint POST /api/analyze. Inspecte l'URL via yt-dlp pour retourner les formats disponibles. Refuse les playlists (S-06) et applique un rate limiting."
+    },
+    {
+      "path": "backend/app/api/downloads.py",
+      "workspace": "backend",
+      "tags": ["api", "downloads", "sse", "cancel"],
+      "description": "Routes d'ajout en file d'attente, de streaming SSE d'avancement et d'annulation des téléchargements."
+    },
+    {
+      "path": "backend/app/api/files.py",
+      "workspace": "backend",
+      "tags": ["api", "files", "signed-url", "ttl"],
+      "description": "Endpoint GET /api/files/{token}. Distribution sécurisée du fichier téléchargé par lien signé à usage temporaire. Suppression automatique 5 min après."
+    },
+    {
+      "path": "backend/app/api/admin.py",
+      "workspace": "backend",
+      "tags": ["api", "admin", "metrics", "system"],
+      "description": "API d'administration : gestion des comptes utilisateur, métriques d'état du serveur (CPU, RAM, temp, disque), journaux et actions rapides (purge disque, MAJ yt-dlp)."
+    },
+    {
+      "path": "backend/alembic/env.py",
+      "workspace": "backend",
+      "tags": ["database", "alembic", "migrations"],
+      "description": "Configuration du moteur de migration Alembic pour SQLite en mode WAL."
+    },
+    {
+      "path": "frontend/src/App.tsx",
+      "workspace": "frontend",
+      "tags": ["react", "router", "app"],
+      "description": "Composant racine gérant le routage, la mise en page globale, les modales et l'initialisation des contextes (Auth, Toast, DownloadManager)."
+    },
+    {
+      "path": "frontend/src/components/flow/MainFlow.tsx",
+      "workspace": "frontend",
+      "tags": ["ui", "flow", "cobalt", "download-card"],
+      "description": "Composant principal de saisie et de traitement d'URL (look Cobalt Tools). Alterne entre l'état initial, la sélection de format, le suivi SSE, la fin et les erreurs."
+    },
+    {
+      "path": "frontend/src/lib/downloadEvents.ts",
+      "workspace": "frontend",
+      "tags": ["sse", "eventsource", "realtime"],
+      "description": "Gestionnaire du flux SSE côté client souscrivant à /api/downloads/{id}/events avec reconnexion automatique."
+    },
+    {
+      "path": "frontend/src/lib/AuthContext.tsx",
+      "workspace": "frontend",
+      "tags": ["auth", "react-context", "session"],
+      "description": "Provider React maintenant l'état de la session utilisateur (/api/auth/me) et exposant les fonctions de connexion et déconnexion."
+    },
+    {
+      "path": "deploy/docker-compose.yml",
+      "workspace": "deploy",
+      "tags": ["docker", "compose", "caddy", "production"],
+      "description": "Fichier Docker Compose de production assemblant Caddy (reverse proxy HTTPS) et FastAPI (lutecium-api) avec les répertoires persistant SQLite et téléchargements."
+    },
+    {
+      "path": "deploy/Caddyfile",
+      "workspace": "deploy",
+      "tags": ["caddy", "proxy", "https", "security-headers"],
+      "description": "Règles Caddy v2 avec gestion HTTPS Let's Encrypt automatique, en-têtes de sécurité stricts (HSTS, CSP), reverse proxy vers /api et distribution des fichiers du frontend."
+    },
+    {
+      "path": "deploy/install-lutecium.sh",
+      "workspace": "deploy",
+      "tags": ["installer", "deploy", "debian", "hardening"],
+      "description": "Script d'installation et de durcissement système pour Debian 13 (Dell Wyse 5070). Configure le pare-feu, fail2ban, SSH par clé uniquement, Docker et déploie les conteneurs."
+    },
+    {
+      "path": "docs/PLAN.md",
+      "workspace": "docs",
+      "tags": ["architecture", "plan", "api-contracts"],
+      "description": "Document de référence de l'architecture backend/frontend et spécifications des contrats d'API REST."
+    },
+    {
+      "path": "docs/cahier-des-charges.md",
+      "workspace": "docs",
+      "tags": ["spec", "requirements", "cdc"],
+      "description": "Cahier des charges fonctionnel et de sécurité avec numérotation des règles F-xx (fonctionnel), S-xx (sécurité), A-xx (admin), P-xx (performances)."
+    }
+  ],
+  "topics": {
+    "auth": [
+      "backend/app/core/sessions.py",
+      "backend/app/models/session.py",
+      "backend/app/models/user.py",
+      "frontend/src/lib/AuthContext.tsx"
+    ],
+    "downloads": [
+      "backend/app/core/worker.py",
+      "backend/app/core/queue.py",
+      "backend/app/api/downloads.py",
+      "frontend/src/components/flow/MainFlow.tsx",
+      "frontend/src/lib/downloadEvents.ts"
+    ],
+    "admin": [
+      "backend/app/api/admin.py",
+      "backend/app/services/metrics.py",
+      "frontend/src/pages/admin/AdminOverviewPage.tsx"
+    ],
+    "deploy": [
+      "deploy/docker-compose.yml",
+      "deploy/Caddyfile",
+      "deploy/install-lutecium.sh",
+      "deploy/cron/update-ytdlp.sh"
+    ],
+    "database": [
+      "backend/app/core/db.py",
+      "backend/app/models/base.py",
+      "backend/alembic/env.py"
+    ],
+    "security": [
+      "backend/app/core/filenames.py",
+      "backend/app/core/bruteforce.py",
+      "backend/app/core/sessions.py",
+      "deploy/Caddyfile"
+    ]
+  },
+  "_deployment": {
+    "_comment": "Runbook de déploiement pour le serveur Dell Wyse 5070.",
+    "productionHost": {
+      "hostname": "debian-malefique",
+      "sshTarget": "fanta@192.168.1.186",
+      "network": "Réseau local / Reverse proxy Caddy avec HTTPS"
+    },
+    "repoOnServer": {
+      "path": "~/lutecium",
+      "owner": "fanta",
+      "gitRemote": "git@github.com-lutecium:FantasmaGlad/Lutecium.app.git"
+    },
+    "serviceInfo": {
+      "unit": "docker compose (deploy/docker-compose.yml)",
+      "runsAs": "fanta",
+      "containers": ["lutecium-caddy", "lutecium-api", "lutecium-duckdns"]
+    },
+    "deploySteps": [
+      "ssh fanta@192.168.1.186",
+      "cd ~/lutecium && git pull origin main",
+      "cd deploy && docker compose up --build -d",
+      "docker compose ps"
+    ],
+    "verifySteps": [
+      "curl -s https://192.168.1.186/api/health | jq .",
+      "docker compose logs --tail=50 lutecium-api"
+    ],
+    "knownQuirks": [
+      "Authentification SSH par clé Ed25519 exclusivement (mots de passe désactivés S-02)",
+      "Fichier cookies Netscape optionnel à placer dans deploy/cookies/cookies.txt pour Instagram / X",
+      "Base SQLite en mode WAL dans data/lutecium.db",
+      "Nettoyage automatique des fichiers téléchargés temporaires après 5 minutes (FILE_TTL_MINUTES)"
+    ]
+  }
+}

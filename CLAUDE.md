@@ -4,10 +4,14 @@ Service web auto-hébergé de téléchargement de vidéos (yt-dlp + FastAPI + Re
 
 ## Documents de référence — à lire en début de session
 
-1. **[TRACKING.md](TRACKING.md)** — état des tâches et journal des sessions. **Toujours le lire en premier.**
-2. **[docs/PLAN.md](docs/PLAN.md)** — plan d'implémentation, décisions techniques, contrats API.
-3. **[docs/cahier-des-charges.md](docs/cahier-des-charges.md)** — source de vérité des exigences (IDs F-xx, A-xx, S-xx, P-xx, M-xx).
-4. **[docs/ui-ux-cahier-des-charges.md](docs/ui-ux-cahier-des-charges.md)** — source de vérité UI/UX : design, états A→F de l'interface, animations, ton (tutoiement), quota-cadeau.
+1. **[AGENTS.md](AGENTS.md)** — consignes d'onboarding agent, RÈGLE D'OR MCP et règles d'architecture.
+2. **[structure.md](structure.md)** — cartographie human-readable du dépôt (arborescence commentée).
+3. **[docs/PLAN.md](docs/PLAN.md)** — plan d'implémentation, décisions techniques, contrats API.
+4. **[docs/cahier-des-charges.md](docs/cahier-des-charges.md)** — source de vérité des exigences (IDs F-xx, A-xx, S-xx, P-xx, M-xx).
+5. **[docs/ui-ux-cahier-des-charges.md](docs/ui-ux-cahier-des-charges.md)** — source de vérité UI/UX : design, états A→F de l'interface, animations, ton (tutoiement), quota-cadeau.
+
+> **RÈGLE D'OR MCP :** Avant toute exploration à l'aveugle, utiliser le serveur MCP local `lutecium-project-map` (`find_file`, `list_topics`, `get_topic_files`, `list_workspaces`, `get_full_map`).
+> **MAINTENANCE :** Mettre à jour `structure.md` ET `.claude/project-structure.json` dans le MÊME commit pour tout changement de structure.
 
 ## Protocole multi-sessions (obligatoire)
 

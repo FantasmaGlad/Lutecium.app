@@ -153,9 +153,15 @@ export const fr = {
     privacy:
       'Aucun tracking, aucune pub. La base de données ne sert qu’à te proposer un historique de tes téléchargements et à limiter les abus (bots, usage excessif du mode invité) — rien n’est revendu ni partagé. Les fichiers téléchargés sont supprimés automatiquement 5 minutes après la fin du traitement.',
     sourceHeading: 'Code source',
-    source:
-      'Le code source sera bientôt publié. Lutecium s’inscrit dans une démarche de libre accès : après avoir profité d’innombrables outils open source pour construire ce projet, il est temps de rendre la pareille à cette communauté.',
+    sourcePrefix: 'Le code source est disponible sur',
+    sourceLinkLabel: 'GitHub',
+    sourceSuffix:
+      '. Lutecium s’inscrit dans une démarche de libre accès : après avoir profité d’innombrables outils open source pour construire ce projet, il est temps de rendre la pareille à cette communauté.',
     api: 'Une API est prévue pour les sites ou scripts qui voudraient utiliser Lutecium de façon automatisée.',
+    licenseHeading: 'Licence',
+    license:
+      'Lutecium est distribué sous licence AGPLv3. En clair : tu peux librement consulter, modifier et réutiliser ce code, y compris à des fins commerciales — à une seule condition. Si tu déploies une version modifiée de ce service accessible à des tiers (par exemple comme service web), tu as l’obligation d’en publier le code source à ton tour. Cette clause garantit que le projet, et tous ses dérivés, restent ouverts même lorsqu’ils tournent comme un service en ligne plutôt que d’être simplement distribués.',
+    licenseLinkLabel: 'Texte complet de la licence',
     contactHeading: 'Contact',
     contactPrefix: 'Une question, un bug, une suggestion ? Écris-moi :',
   },
@@ -418,9 +424,15 @@ export const en = {
     privacy:
       "No tracking, no ads. The database is only used to show you your download history and to limit abuse (bots, excessive use of guest mode) — nothing is sold or shared. Downloaded files are automatically deleted 5 minutes after processing finishes.",
     sourceHeading: 'Source code',
-    source:
-      "The source code will be published soon. Lutecium is part of a free-access mindset: after benefiting from countless open source tools to build this project, it's time to give back to that community.",
+    sourcePrefix: 'The source code is available on',
+    sourceLinkLabel: 'GitHub',
+    sourceSuffix:
+      ". Lutecium is part of a free-access mindset: after benefiting from countless open source tools to build this project, it's time to give back to that community.",
     api: 'An API is planned for sites or scripts that want to use Lutecium in an automated way.',
+    licenseHeading: 'License',
+    license:
+      "Lutecium is distributed under the AGPLv3 license. In short: you're free to read, modify, and reuse this code, including for commercial purposes — under one condition. If you deploy a modified version of this service to third parties (for example, as a web service), you must publish its source code as well. This clause keeps the project, and any derivative of it, open even when it runs as an online service rather than being simply distributed.",
+    licenseLinkLabel: 'Full license text',
     contactHeading: 'Contact',
     contactPrefix: 'A question, a bug, a suggestion? Write to me:',
   },

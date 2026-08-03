@@ -37,8 +37,29 @@ export function AboutPage() {
 
       <section className="about-page__section">
         <h2 className="about-page__heading">{t.about.sourceHeading}</h2>
-        <p>{t.about.source}</p>
+        <p>
+          {t.about.sourcePrefix}{' '}
+          <a href="https://github.com/FantasmaGlad/Lutecium.app" target="_blank" rel="noopener noreferrer">
+            {t.about.sourceLinkLabel}
+          </a>
+          {t.about.sourceSuffix}
+        </p>
         <p>{t.about.api}</p>
+      </section>
+
+      <section className="about-page__section">
+        <h2 className="about-page__heading">{t.about.licenseHeading}</h2>
+        <p>
+          {t.about.license}{' '}
+          <a
+            href="https://github.com/FantasmaGlad/Lutecium.app/blob/main/LICENSE"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {t.about.licenseLinkLabel}
+          </a>
+          .
+        </p>
       </section>
 
       <section className="about-page__section">

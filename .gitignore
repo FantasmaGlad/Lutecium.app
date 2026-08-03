@@ -33,3 +33,8 @@ backend/data/
 # Divers
 .DS_Store
 .claude/settings.local.json
+
+# Cartographie IA & MCP
+.claude/mcp/node_modules/
+.claude/mcp/package-lock.json
+
