@@ -245,14 +245,13 @@ npm run build                       # Compilation du bundle de production
 
 ---
 
-## 10. Outillage IA et cartographie
+## 10. Outillage de cartographie et navigation
 
-Le dépôt intègre un système de cartographie à jour pour la navigation autonome par agent IA :
+Le dépôt intègre une cartographie structurée pour la navigation et l'indexation du projet :
 
-- **`.claude/project-structure.json`** : Source de vérité JSON lue dynamiquement par le serveur MCP local.
-- **`structure.md`** (symlink vers `.claude/structure.md`) : Miroir lisible par un humain.
-- **`.claude/mcp/server.mjs`** : Serveur MCP Stdio fournissant les outils `find_file`, `list_topics`, `get_topic_files`, `list_workspaces`, `get_full_map`.
-- **`AGENTS.md`** (symlink vers `.gemini/AGENTS.md`) : Règle d'or de consultation MCP et consignes de développement.
+- **`.claude/project-structure.json`** : Source de vérité JSON décrivant les paquets, fichiers et thématiques du projet.
+- **`.claude/structure.md`** : Arborescence commentée au format Markdown.
+- **`.claude/mcp/server.mjs`** : Service local d'exploration exposant les fonctions `find_file`, `list_topics`, `get_topic_files`, `list_workspaces`, `get_full_map`.
 
 ---
 

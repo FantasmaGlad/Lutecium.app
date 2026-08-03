@@ -3,8 +3,8 @@
 **Version :** 1.0 — 20 juillet 2026
 **Référence :** [cahier des charges v1.0](cahier-des-charges.md) (source de vérité des exigences)
 **Référence UI/UX :** [cahier des charges UI/UX v1.0](ui-ux-cahier-des-charges.md) (source de vérité de l'interface)
-**Suivi d'avancement :** [TRACKING.md](../TRACKING.md) (état des tâches, à jour en temps réel)
-**Protocole multi-agents :** [CLAUDE.md](../CLAUDE.md)
+**Suivi d'avancement :** [.claude/TRACKING.md](../.claude/TRACKING.md) (état des tâches, à jour en temps réel)
+**Protocole de développement :** [.claude/CLAUDE.md](../.claude/CLAUDE.md)
 
 ---
 
@@ -51,8 +51,9 @@
 
 ```
 Lutecium/
-├── CLAUDE.md                  # protocole multi-agents (lu automatiquement par Claude Code)
-├── TRACKING.md                # état des tâches — LE fichier de pilotage
+├── .claude/
+│   ├── CLAUDE.md              # protocole de développement (lu automatiquement par Claude Code)
+│   └── TRACKING.md            # état des tâches — LE fichier de pilotage
 ├── README.md
 ├── .env.example               # toutes les variables du §6 + secrets
 ├── docs/
@@ -211,4 +212,4 @@ Parallélisation possible entre sessions/agents :
 - **Piste B (frontend)** : P3 peut démarrer dès la fin de P1 (les contrats §3 sont figés ; l'auth P3-05/P3-06 attend P2).
 - **Piste C (ops)** : P0 dès que le matériel est prêt ; P5-01/P5-06 (script, terminal) peuvent s'écrire à tout moment, leur test attend le Wyse.
 
-Règles de coordination : voir [CLAUDE.md](../CLAUDE.md). En résumé : une tâche = un seul agent ; TRACKING.md mis à jour avant/après chaque tâche ; toute déviation du plan documentée dans TRACKING.md § Décisions.
+Règles de coordination : voir [.claude/CLAUDE.md](../.claude/CLAUDE.md). En résumé : une tâche à la fois ; `.claude/TRACKING.md` mis à jour avant/après chaque tâche ; toute déviation du plan documentée dans TRACKING.md § Décisions.
